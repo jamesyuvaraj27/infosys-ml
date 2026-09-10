@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ML Market Intelligence{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+  <nav class="bg-gray-800/80 border-b border-gray-700 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+        ML Intelligence
+      </a>
+      <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+        <a href="/" class="hover:text-white transition">Dashboard</a>
+        <a href="/submit" class="hover:text-white transition">Submit Project</a>
+        <a href="/roadmap/risk-assessment" class="hover:text-white transition">Risk Assessment</a>
+        <a href="/roadmap/ai-advisor" class="hover:text-white transition">AI Advisor</a>
+      </div>
+      <span class="text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-600/40 px-3 py-1 rounded-full">
+        Milestone 1
+      </span>
+    </div>
+  </nav>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-gray-800 text-center text-gray-500 text-sm py-6">
+    ML Market Intelligence System | Milestone 1 - Data Collection
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

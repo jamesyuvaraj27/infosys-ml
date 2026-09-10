@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+  <div class="bg-gray-800 rounded-xl p-6">
+    <div class="text-blue-400 text-2xl mb-2">📁</div>
+    <div class="text-3xl font-bold">{{ count }}</div>
+    <div class="text-gray-400 text-sm">Total Projects</div>
+  </div>
+  <div class="bg-gray-800 rounded-xl p-6">
+    <div class="text-purple-400 text-2xl mb-2">🏭</div>
+    <div class="text-3xl font-bold">{{ projects | map(attribute='industry') | unique | list | length }} Industries</div>
+    <div class="text-gray-400 text-sm">Market Analyzed</div>
+  </div>
+  <div class="bg-gray-800 rounded-xl p-6">
+    <div class="text-pink-400 text-2xl mb-2">💰</div>
+    <div class="text-3xl font-bold">
+      {% if projects %}
+        ₹{{ '{:,.0f}'.format((projects | sum(attribute='budget')) / (projects | length)) }}
+      {% else %}
+        ₹0
+      {% endif %}
+    </div>
+    <div class="text-gray-400 text-sm">Avg Budget</div>
+  </div>
+  <div class="bg-gray-800 rounded-xl p-6">
+    <div class="text-green-400 text-2xl mb-2">✅</div>
+    <div class="text-3xl font-bold text-green-400">Active</div>
+    <div class="text-gray-400 text-sm">System Status</div>
+  </div>
+</div>
+
+{% if project %}
+<div class="grid md:grid-cols-3 gap-6 mb-10">
+  <div class="bg-gray-800 rounded-xl p-6">
+    <h2 class="text-lg font-bold mb-4">Project Details</h2>
+    <dl class="space-y-3 text-sm">
+      <div><dt class="text-gray-400">Startup</dt><dd class="font-medium">{{ project.startup_name }}</dd></div>
+      <div><dt class="text-gray-400">Industry</dt><dd class="font-medium">{{ project.industry }}</dd></div>
+      <div><dt class="text-gray-400">Business Model</dt><dd class="font-medium">{{ project.business_model }}</dd></div>
+      <div><dt class="text-gray-400">Target Market</dt><dd class="font-medium">{{ project.target_market or "—" }}</dd></div>
+      <div><dt class="text-gray-400">Budget</dt><dd class="font-medium">₹{{ '{:,.0f}'.format(project.budget or 0) }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-6">
+    <h2 class="text-lg font-bold mb-4">Market Analysis</h2>
+    <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+      <div class="bg-blue-600/10 border border-blue-600/30 rounded-lg p-3">
+        <div class="text-blue-400 font-bold">{{ market_data.tam }}</div>
+        <div class="text-gray-400 text-xs">TAM</div>
+      </div>
+      <div class="bg-purple-600/10 border border-purple-600/30 rounded-lg p-3">
+        <div class="text-purple-400 font-bold">{{ market_data.sam }}</div>
+        <div class="text-gray-400 text-xs">SAM</div>
+      </div>
+      <div class="bg-pink-600/10 border border-pink-600/30 rounded-lg p-3">
+        <div class="text-pink-400 font-bold">{{ market_data.som }}</div>
+        <div class="text-gray-400 text-xs">SOM</div>
+      </div>
+    </div>
+    <canvas id="marketTrendChart" height="160"></canvas>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-6">
+    <h2 class="text-lg font-bold mb-4">Competitor Landscape</h2>
+    <div class="space-y-3 mb-4">
+      {% for c in competitors %}
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span>{{ c.name }}</span>
+          <span class="text-gray-400">{{ c.revenue }} · <span class="text-green-400">{{ c.growth }}</span></span>
+        </div>
+        <div class="w-full bg-gray-700 rounded-full h-2">
+          <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" style="width: {{ c.market_share }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <canvas id="competitorChart" height="160"></canvas>
+  </div>
+</div>
+{% else %}
+<div class="bg-gray-800 rounded-xl p-10 text-center mb-10">
+  <p class="text-gray-400 mb-4">No project submitted yet.</p>
+  <a href="/submit" class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+    Submit Your First Project →
+  </a>
+</div>
+{% endif %}
+
+<div class="bg-gray-800 rounded-xl p-6">
+  <h2 class="text-lg font-bold mb-6">Milestone Roadmap</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="border border-green-600/40 bg-green-600/10 rounded-lg p-4">
+      <div class="text-green-400 text-sm font-semibold mb-1">M1 · Active</div>
+      <div class="font-medium">Data Collection</div>
+    </div>
+    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
+      <div class="text-sm font-semibold mb-1">M2</div>
+      <div class="font-medium">Risk Assessment</div>
+    </div>
+    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
+      <div class="text-sm font-semibold mb-1">M3</div>
+      <div class="font-medium">AI Advisor</div>
+    </div>
+    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
+      <div class="text-sm font-semibold mb-1">M4</div>
+      <div class="font-medium">Deployment</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.marketData = {{ market_data | tojson }};
+  window.competitors = {{ competitors | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Submit Your Project{% endblock %}
+
+{% block content %}
+<div class="grid md:grid-cols-2 gap-10 items-start">
+  <div>
+    <h1 class="text-3xl font-bold mb-4">Submit Your Project</h1>
+    <p class="text-gray-400 mb-8">
+      Tell us about your startup idea and get an instant market intelligence snapshot.
+    </p>
+
+    <div class="space-y-5">
+      <div class="flex gap-4 items-start">
+        <div class="text-blue-400 text-2xl">📊</div>
+        <div>
+          <h3 class="font-semibold">Market Size Analysis</h3>
+          <p class="text-gray-400 text-sm">TAM, SAM and SOM estimated for your industry and budget.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <div class="text-purple-400 text-2xl">🏢</div>
+        <div>
+          <h3 class="font-semibold">Competitor Landscape</h3>
+          <p class="text-gray-400 text-sm">See where you stand against key players in your space.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <div class="text-pink-400 text-2xl">⚠️</div>
+        <div>
+          <h3 class="font-semibold">Risk Assessment</h3>
+          <p class="text-gray-400 text-sm">Coming in Milestone 2 — scored risk & SWOT analysis.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full">
+    <form action="/submit" method="POST" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Startup Name</label>
+        <input type="text" name="startup_name" required placeholder="e.g. EduTech India"
+               class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Industry</label>
+        <select name="industry" required
+                class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {% for ind in industries %}
+          <option value="{{ ind }}">{{ ind }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Business Model</label>
+        <select name="business_model" required
+                class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {% for bm in business_models %}
+          <option value="{{ bm }}">{{ bm }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Target Market</label>
+        <input type="text" name="target_market" placeholder="e.g. College students in Tier-2 cities"
+               class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Budget (₹)</label>
+        <input type="number" name="budget" placeholder="50000"
+               class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Project Description</label>
+        <textarea name="project_description" rows="4" placeholder="Describe your startup idea..."
+                  class="bg-gray-700 border border-gray-600 text-white rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+        Analyze My Project →
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
