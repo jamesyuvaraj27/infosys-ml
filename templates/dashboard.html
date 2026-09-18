@@ -34,15 +34,32 @@
 
 {% if project %}
 <div class="grid md:grid-cols-3 gap-6 mb-10">
-  <div class="bg-gray-800 rounded-xl p-6">
-    <h2 class="text-lg font-bold mb-4">Project Details</h2>
-    <dl class="space-y-3 text-sm">
-      <div><dt class="text-gray-400">Startup</dt><dd class="font-medium">{{ project.startup_name }}</dd></div>
-      <div><dt class="text-gray-400">Industry</dt><dd class="font-medium">{{ project.industry }}</dd></div>
-      <div><dt class="text-gray-400">Business Model</dt><dd class="font-medium">{{ project.business_model }}</dd></div>
-      <div><dt class="text-gray-400">Target Market</dt><dd class="font-medium">{{ project.target_market or "—" }}</dd></div>
-      <div><dt class="text-gray-400">Budget</dt><dd class="font-medium">₹{{ '{:,.0f}'.format(project.budget or 0) }}</dd></div>
-    </dl>
+  <div class="bg-gray-800 rounded-xl p-6 flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Project Details</h2>
+        <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/40">Milestone 1</span>
+      </div>
+      <dl class="space-y-3 text-sm">
+        <div><dt class="text-gray-400 text-xs">Startup</dt><dd class="font-semibold text-white text-base">{{ project.startup_name }}</dd></div>
+        <div><dt class="text-gray-400 text-xs">Industry</dt><dd class="font-medium text-gray-200">{{ project.industry }}</dd></div>
+        <div><dt class="text-gray-400 text-xs">Business Model</dt><dd class="font-medium text-gray-200">{{ project.business_model }}</dd></div>
+        <div><dt class="text-gray-400 text-xs">Target Market</dt><dd class="font-medium text-gray-200">{{ project.target_market or "—" }}</dd></div>
+        <div><dt class="text-gray-400 text-xs">Budget</dt><dd class="font-medium text-emerald-400">₹{{ '{:,.0f}'.format(project.budget or 0) }}</dd></div>
+      </dl>
+    </div>
+
+    <!-- Quick action links for current project -->
+    <div class="mt-6 pt-4 border-t border-gray-700 space-y-2">
+      <a href="/risk-assessment/{{ project.id }}" class="flex items-center justify-between w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 px-3 py-2 rounded-lg text-xs font-semibold transition">
+        <span>🛡️ Risk &amp; SWOT Assessment (M2)</span>
+        <span>→</span>
+      </a>
+      <a href="/recommendations/{{ project.id }}" class="flex items-center justify-between w-full bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 px-3 py-2 rounded-lg text-xs font-semibold transition">
+        <span>🎯 AI Recommendations &amp; Reasoning (M3)</span>
+        <span>→</span>
+      </a>
+    </div>
   </div>
 
   <div class="bg-gray-800 rounded-xl p-6">
@@ -83,33 +100,94 @@
   </div>
 </div>
 {% else %}
-<div class="bg-gray-800 rounded-xl p-10 text-center mb-10">
-  <p class="text-gray-400 mb-4">No project submitted yet.</p>
-  <a href="/submit" class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
-    Submit Your First Project →
-  </a>
+<div class="bg-gray-800 rounded-xl p-8 mb-10">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-700">
+    <div>
+      <h2 class="text-xl font-bold text-white">All Projects</h2>
+      <p class="text-xs text-gray-400">Select any project to explore Milestone 1, 2, or 3</p>
+    </div>
+    <a href="/submit" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
+      <span>+ New Project</span>
+    </a>
+  </div>
+
+  {% if projects %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm text-gray-300">
+      <thead class="text-xs uppercase bg-gray-900/60 text-gray-400 border-b border-gray-700">
+        <tr>
+          <th class="px-4 py-3">#</th>
+          <th class="px-4 py-3">Startup</th>
+          <th class="px-4 py-3">Industry</th>
+          <th class="px-4 py-3">Model</th>
+          <th class="px-4 py-3">Budget</th>
+          <th class="px-4 py-3 text-right">Explore Milestones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-700">
+        {% for p in projects %}
+        <tr class="hover:bg-gray-700/30 transition">
+          <td class="px-4 py-3 text-gray-500 font-mono">{{ p.id }}</td>
+          <td class="px-4 py-3 font-semibold text-white">{{ p.startup_name }}</td>
+          <td class="px-4 py-3">{{ p.industry }}</td>
+          <td class="px-4 py-3">{{ p.business_model }}</td>
+          <td class="px-4 py-3 text-emerald-400 font-medium">₹{{ '{:,.0f}'.format(p.budget or 0) }}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <a href="/dashboard/{{ p.id }}" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2.5 py-1 rounded transition">M1 Data</a>
+            <a href="/risk-assessment/{{ p.id }}" class="text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded transition">M2 Risk/SWOT</a>
+            <a href="/recommendations/{{ p.id }}" class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 px-2.5 py-1 rounded transition">M3 Recs</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-8">
+    <p class="text-gray-400 mb-4">No project submitted yet.</p>
+    <a href="/submit" class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+      Submit Your First Project →
+    </a>
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 
+<!-- Interactive Milestone Roadmap -->
 <div class="bg-gray-800 rounded-xl p-6">
-  <h2 class="text-lg font-bold mb-6">Milestone Roadmap</h2>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="border border-green-600/40 bg-green-600/10 rounded-lg p-4">
-      <div class="text-green-400 text-sm font-semibold mb-1">M1 · Active</div>
-      <div class="font-medium">Data Collection</div>
-    </div>
-    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
-      <div class="text-sm font-semibold mb-1">M2</div>
-      <div class="font-medium">Risk Assessment</div>
-    </div>
-    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
-      <div class="text-sm font-semibold mb-1">M3</div>
-      <div class="font-medium">AI Advisor</div>
-    </div>
-    <div class="border border-gray-700 bg-gray-700/30 rounded-lg p-4 text-gray-400">
-      <div class="text-sm font-semibold mb-1">M4</div>
-      <div class="font-medium">Deployment</div>
-    </div>
+  <h2 class="text-lg font-bold mb-4">Interactive Milestone Pipeline</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    
+    <a href="{% if project %}/dashboard/{{ project.id }}{% elif latest %}/dashboard/{{ latest.id }}{% else %}/submit{% endif %}"
+       class="block border border-green-600/40 bg-green-600/10 hover:bg-green-600/20 rounded-xl p-4 transition group">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-green-400 text-xs font-semibold">Milestone 1</span>
+        <span class="text-green-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+      </div>
+      <div class="font-bold text-white text-base">Project Ingestion &amp; Market Data</div>
+      <div class="text-xs text-gray-400 mt-1">Form inputs, TAM/SAM/SOM, and competitor intelligence.</div>
+    </a>
+
+    <a href="{% if project %}/risk-assessment/{{ project.id }}{% elif latest %}/risk-assessment/{{ latest.id }}{% else %}/submit{% endif %}"
+       class="block border border-blue-600/40 bg-blue-600/10 hover:bg-blue-600/20 rounded-xl p-4 transition group">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-blue-400 text-xs font-semibold">Milestone 2</span>
+        <span class="text-blue-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+      </div>
+      <div class="font-bold text-white text-base">Risk Assessment &amp; SWOT Analysis</div>
+      <div class="text-xs text-gray-400 mt-1">Scoring engine, 4-quadrant SWOT matrix &amp; feasibility assessment.</div>
+    </a>
+
+    <a href="{% if project %}/recommendations/{{ project.id }}{% elif latest %}/recommendations/{{ latest.id }}{% else %}/submit{% endif %}"
+       class="block border border-purple-600/40 bg-purple-600/10 hover:bg-purple-600/20 rounded-xl p-4 transition group">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-purple-400 text-xs font-semibold">Milestone 3</span>
+        <span class="text-purple-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+      </div>
+      <div class="font-bold text-white text-base">AI Decision &amp; Strategic Reasoning</div>
+      <div class="text-xs text-gray-400 mt-1">Actionable recommendations, risk mitigations &amp; LangGraph flow.</div>
+    </a>
+
   </div>
 </div>
 
