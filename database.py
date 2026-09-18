@@ -167,6 +167,181 @@ def get_project_by_id(project_id):
         conn.close()
 
 
+# ---------------------------------------------------------------------------
+# Milestone 3 – recommendations & mitigations tables
+# ---------------------------------------------------------------------------
+
+def init_milestone3_tables():
+    """Create recommendations and mitigations tables if they don't exist."""
+    conn = get_connection()
+    try:
+        if _USE_SQLITE:
+            with conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS recommendations (
+                        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                        project_id INTEGER,
+                        title      TEXT,
+                        priority   VARCHAR(50),
+                        description TEXT
+                    )
+                    """
+                )
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS mitigations (
+                        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                        project_id INTEGER,
+                        risk_name  TEXT,
+                        impact     VARCHAR(50),
+                        mitigation TEXT
+                    )
+                    """
+                )
+        else:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS recommendations (
+                        id          SERIAL PRIMARY KEY,
+                        project_id  INT,
+                        title       VARCHAR(255),
+                        priority    VARCHAR(50),
+                        description TEXT
+                    )
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS mitigations (
+                        id          SERIAL PRIMARY KEY,
+                        project_id  INT,
+                        risk_name   VARCHAR(255),
+                        impact      VARCHAR(50),
+                        mitigation  TEXT
+                    )
+                    """
+                )
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def save_recommendations(project_id: int, recommendations: list):
+    """Delete existing recommendations for a project and insert fresh ones."""
+    conn = get_connection()
+    try:
+        if _USE_SQLITE:
+            with conn:
+                conn.execute(
+                    "DELETE FROM recommendations WHERE project_id = ?", (project_id,)
+                )
+                for rec in recommendations:
+                    conn.execute(
+                        """
+                        INSERT INTO recommendations (project_id, title, priority, description)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        (project_id, rec["title"], rec["priority"], rec["description"]),
+                    )
+        else:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM recommendations WHERE project_id = %s", (project_id,)
+                )
+                for rec in recommendations:
+                    cur.execute(
+                        """
+                        INSERT INTO recommendations (project_id, title, priority, description)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (project_id, rec["title"], rec["priority"], rec["description"]),
+                    )
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def get_recommendations(project_id: int) -> list:
+    """Return all recommendation rows for a project as a list of dicts."""
+    conn = get_connection()
+    try:
+        if _USE_SQLITE:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT * FROM recommendations WHERE project_id = ?", (project_id,)
+            )
+            return [dict(row) for row in cur.fetchall()]
+        else:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT * FROM recommendations WHERE project_id = %s", (project_id,)
+                )
+                return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def save_mitigations(project_id: int, mitigations: list):
+    """Delete existing mitigations for a project and insert fresh ones."""
+    conn = get_connection()
+    try:
+        if _USE_SQLITE:
+            with conn:
+                conn.execute(
+                    "DELETE FROM mitigations WHERE project_id = ?", (project_id,)
+                )
+                for mit in mitigations:
+                    conn.execute(
+                        """
+                        INSERT INTO mitigations (project_id, risk_name, impact, mitigation)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        (project_id, mit["risk"], mit["impact"], mit["mitigation"]),
+                    )
+        else:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM mitigations WHERE project_id = %s", (project_id,)
+                )
+                for mit in mitigations:
+                    cur.execute(
+                        """
+                        INSERT INTO mitigations (project_id, risk_name, impact, mitigation)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (project_id, mit["risk"], mit["impact"], mit["mitigation"]),
+                    )
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def get_mitigations(project_id: int) -> list:
+    """Return all mitigation rows for a project as a list of dicts."""
+    conn = get_connection()
+    try:
+        if _USE_SQLITE:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT * FROM mitigations WHERE project_id = ?", (project_id,)
+            )
+            return [dict(row) for row in cur.fetchall()]
+        else:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT * FROM mitigations WHERE project_id = %s", (project_id,)
+                )
+                return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Original insert_project (unchanged)
+# ---------------------------------------------------------------------------
+
 def insert_project(data):
     """Insert a new project row and return its new id."""
     conn = get_connection()
