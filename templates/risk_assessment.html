@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Risk & SWOT — {{ project.startup_name }}{% endblock %}
+{% block title %}Risk Assessment &amp; SWOT — {{ project.startup_name }}{% endblock %}
 
 {% block content %}
 
@@ -7,32 +7,33 @@
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
   <div>
     <div class="flex items-center gap-3 mb-2">
-      <span class="text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-600/40 px-3 py-1 rounded-full">Milestone 2</span>
-      <span class="text-gray-500 text-sm">Analysis Layer</span>
+      <span class="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full">
+        Milestone 2 • Analysis Layer
+      </span>
     </div>
-    <h1 class="text-3xl font-extrabold bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 bg-clip-text text-transparent">
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
       Risk Assessment &amp; SWOT Analysis
     </h1>
-    <p class="text-gray-400 mt-1 text-sm">
-      <span class="text-white font-medium">{{ project.startup_name }}</span> &nbsp;·&nbsp;
-      {{ project.industry }} &nbsp;·&nbsp;
-      {{ project.business_model }} &nbsp;·&nbsp;
-      Budget: ₹{{ '{:,.0f}'.format(project.budget or 0) }}
+    <p class="text-slate-600 mt-1 text-xs sm:text-sm">
+      <span class="text-slate-900 font-semibold">{{ project.startup_name }}</span> &nbsp;·&nbsp;
+      <span>{{ project.industry }}</span> &nbsp;·&nbsp;
+      <span>{{ project.business_model }}</span> &nbsp;·&nbsp;
+      Budget: <span class="text-emerald-700 font-mono font-semibold">₹{{ '{:,.0f}'.format(project.budget or 0) }}</span>
     </p>
   </div>
 
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-2.5 flex-wrap">
     {% if projects | length > 1 %}
     <select id="project-selector"
             onchange="if(this.value) window.location='/risk-assessment/'+this.value"
-            class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            class="saas-select py-1.5 px-3 text-xs w-auto">
       {% for p in projects %}
       <option value="{{ p.id }}" {% if p.id == project.id %}selected{% endif %}>#{{ p.id }} – {{ p.startup_name }}</option>
       {% endfor %}
     </select>
     {% endif %}
     <a href="/recommendations/{{ project.id }}"
-       class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-lg shadow-purple-900/30 transition-all">
+       class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition">
       <span>AI Recommendations (M3)</span>
       <span>→</span>
     </a>
@@ -40,22 +41,24 @@
 </div>
 
 <!-- ───────────────────────────── Main Grid ───────────────────────────── -->
-<div class="grid lg:grid-cols-12 gap-8">
+<div class="grid lg:grid-cols-12 gap-6">
 
   <!-- ══════════════════════ LEFT (5 Cols) – Inputs & Controls ══════════════════════ -->
   <div class="lg:col-span-5 space-y-6">
 
     <!-- Risk Assessment Input Card -->
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl">
-      <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-700">
-        <span class="text-blue-400 text-xl">⚙️</span>
-        <h2 class="text-lg font-bold">Risk Assessment Factors</h2>
+    <div class="saas-card p-6 border-t-4 border-t-blue-500">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="text-blue-600 text-base">⚙️</span>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Risk Assessment Factors</h2>
+        </div>
       </div>
 
-      <form id="risk-form" class="space-y-4" onsubmit="return false;">
+      <form id="risk-form" class="space-y-3.5" onsubmit="return false;">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Market Competition</label>
-          <select id="market_competition" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Market Competition</label>
+          <select id="market_competition" class="saas-select text-xs py-2">
             <option value="Low">Low Competition</option>
             <option value="Medium" selected>Medium Competition</option>
             <option value="High">High Competition</option>
@@ -63,8 +66,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Team Technical Expertise</label>
-          <select id="team_expertise" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Team Expertise</label>
+          <select id="team_expertise" class="saas-select text-xs py-2">
             <option value="Low">Low Expertise</option>
             <option value="Medium" selected>Medium Expertise</option>
             <option value="High">High Expertise</option>
@@ -72,8 +75,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Resource Availability</label>
-          <select id="resource_availability" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Resource Availability</label>
+          <select id="resource_availability" class="saas-select text-xs py-2">
             <option value="Limited">Limited Resources</option>
             <option value="Moderate" selected>Moderate Resources</option>
             <option value="Good">Good / Abundant</option>
@@ -81,8 +84,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Innovation Level</label>
-          <select id="innovation_level" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Innovation Level</label>
+          <select id="innovation_level" class="saas-select text-xs py-2">
             <option value="Low">Low / Standard Product</option>
             <option value="Medium" selected>Medium / Incremental</option>
             <option value="High">High / Disruptive</option>
@@ -90,8 +93,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Market Research Depth</label>
-          <select id="market_research" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Market Research</label>
+          <select id="market_research" class="saas-select text-xs py-2">
             <option value="Limited">Limited Research</option>
             <option value="Moderate" selected>Moderate Validation</option>
             <option value="Strong">Strong Empirical Data</option>
@@ -101,47 +104,49 @@
     </div>
 
     <!-- Feasibility Controls Card -->
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl">
-      <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-700">
-        <span class="text-emerald-400 text-xl">📈</span>
-        <h2 class="text-lg font-bold">Project Feasibility Parameters</h2>
+    <div class="saas-card p-6 border-t-4 border-t-emerald-500">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-600 text-base">📈</span>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Project Feasibility Parameters</h2>
+        </div>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-3.5">
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
-            <span class="text-gray-400">Market Opportunity</span>
-            <span class="text-emerald-400" id="val-market-opp">70%</span>
+            <span class="text-slate-600">Market Opportunity</span>
+            <span class="text-emerald-700 font-mono font-bold" id="val-market-opp">70%</span>
           </div>
           <input type="range" id="slider-market-opp" min="0" max="100" value="70"
-                 class="w-full accent-emerald-500 bg-gray-700 rounded-lg h-2 cursor-pointer">
+                 class="w-full accent-emerald-600 bg-slate-200 rounded-lg h-2 cursor-pointer">
         </div>
 
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
-            <span class="text-gray-400">Team Capability</span>
-            <span class="text-emerald-400" id="val-team-cap">65%</span>
+            <span class="text-slate-600">Team Capability</span>
+            <span class="text-emerald-700 font-mono font-bold" id="val-team-cap">65%</span>
           </div>
           <input type="range" id="slider-team-cap" min="0" max="100" value="65"
-                 class="w-full accent-emerald-500 bg-gray-700 rounded-lg h-2 cursor-pointer">
+                 class="w-full accent-emerald-600 bg-slate-200 rounded-lg h-2 cursor-pointer">
         </div>
 
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
-            <span class="text-gray-400">Competitive Advantage</span>
-            <span class="text-emerald-400" id="val-comp-adv">60%</span>
+            <span class="text-slate-600">Competitive Advantage</span>
+            <span class="text-emerald-700 font-mono font-bold" id="val-comp-adv">60%</span>
           </div>
           <input type="range" id="slider-comp-adv" min="0" max="100" value="60"
-                 class="w-full accent-emerald-500 bg-gray-700 rounded-lg h-2 cursor-pointer">
+                 class="w-full accent-emerald-600 bg-slate-200 rounded-lg h-2 cursor-pointer">
         </div>
 
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
-            <span class="text-gray-400">Resource Readiness</span>
-            <span class="text-emerald-400" id="val-res-read">55%</span>
+            <span class="text-slate-600">Resource Readiness</span>
+            <span class="text-emerald-700 font-mono font-bold" id="val-res-read">55%</span>
           </div>
           <input type="range" id="slider-res-read" min="0" max="100" value="55"
-                 class="w-full accent-emerald-500 bg-gray-700 rounded-lg h-2 cursor-pointer">
+                 class="w-full accent-emerald-600 bg-slate-200 rounded-lg h-2 cursor-pointer">
         </div>
       </div>
     </div>
@@ -155,90 +160,90 @@
     <div class="grid sm:grid-cols-3 gap-4">
       
       <!-- Risk Score Card -->
-      <div class="bg-gray-800 border border-gray-700 rounded-xl p-5">
-        <div class="text-gray-400 text-xs font-medium mb-1">Overall Risk Score</div>
-        <div class="text-3xl font-extrabold text-white flex items-baseline gap-2">
+      <div class="saas-card p-5">
+        <div class="text-slate-500 text-xs font-semibold mb-1">Overall Risk Score</div>
+        <div class="text-3xl font-extrabold text-slate-900 font-mono flex items-baseline gap-1.5">
           <span id="display-risk-score">45</span>
-          <span class="text-xs text-gray-500 font-normal">/ 100</span>
+          <span class="text-xs text-slate-400 font-normal">/ 100</span>
         </div>
         <div class="mt-2" id="display-risk-badge">
-          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">MEDIUM RISK</span>
+          <span class="saas-badge badge-high">MEDIUM RISK</span>
         </div>
       </div>
 
       <!-- Success Probability Card -->
-      <div class="bg-gray-800 border border-gray-700 rounded-xl p-5">
-        <div class="text-gray-400 text-xs font-medium mb-1">Success Probability</div>
-        <div class="text-3xl font-extrabold text-blue-400" id="display-success-prob">
+      <div class="saas-card p-5">
+        <div class="text-slate-500 text-xs font-semibold mb-1">Success Probability</div>
+        <div class="text-3xl font-extrabold text-blue-600 font-mono" id="display-success-prob">
           55%
         </div>
-        <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
-          <div id="display-success-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 55%"></div>
+        <div class="w-full bg-slate-200 rounded-full h-2 mt-3 overflow-hidden">
+          <div id="display-success-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 55%"></div>
         </div>
       </div>
 
       <!-- Feasibility Verdict Card -->
-      <div class="bg-gray-800 border border-gray-700 rounded-xl p-5">
-        <div class="text-gray-400 text-xs font-medium mb-1">Feasibility Score &amp; Verdict</div>
-        <div class="text-3xl font-extrabold text-emerald-400" id="display-feasibility-score">
+      <div class="saas-card p-5">
+        <div class="text-slate-500 text-xs font-semibold mb-1">Feasibility Score</div>
+        <div class="text-3xl font-extrabold text-emerald-600 font-mono" id="display-feasibility-score">
           63%
         </div>
         <div class="mt-2">
-          <span id="display-verdict" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">Feasible</span>
+          <span id="display-verdict" class="saas-badge badge-emerald">Feasible</span>
         </div>
       </div>
 
     </div>
 
     <!-- 4-Quadrant SWOT Matrix -->
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700">
+    <div class="saas-card p-6">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2">
-          <span class="text-purple-400 text-xl">🧭</span>
-          <h2 class="text-lg font-bold">Automated SWOT Analysis</h2>
+          <span class="text-purple-600 text-base">🧭</span>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Automated SWOT Analysis</h2>
         </div>
-        <span class="text-xs text-gray-500">Live AI Generated</span>
+        <span class="text-xs text-slate-400">Generated</span>
       </div>
 
       <div class="grid sm:grid-cols-2 gap-4">
         
         <!-- Strengths -->
-        <div class="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-4">
-          <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-2">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-xs uppercase mb-2">
             <span>💪</span> Strengths
           </div>
-          <ul id="swot-strengths" class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <ul id="swot-strengths" class="text-xs text-emerald-950 space-y-1 list-disc list-inside leading-relaxed">
             <li>Good baseline capability</li>
           </ul>
         </div>
 
         <!-- Weaknesses -->
-        <div class="bg-rose-950/30 border border-rose-800/40 rounded-xl p-4">
-          <div class="flex items-center gap-2 text-rose-400 font-bold text-sm mb-2">
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-4">
+          <div class="flex items-center gap-1.5 text-rose-800 font-bold text-xs uppercase mb-2">
             <span>⚠️</span> Weaknesses
           </div>
-          <ul id="swot-weaknesses" class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <ul id="swot-weaknesses" class="text-xs text-rose-950 space-y-1 list-disc list-inside leading-relaxed">
             <li>Resource constraints</li>
           </ul>
         </div>
 
         <!-- Opportunities -->
-        <div class="bg-blue-950/30 border border-blue-800/40 rounded-xl p-4">
-          <div class="flex items-center gap-2 text-blue-400 font-bold text-sm mb-2">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="flex items-center gap-1.5 text-blue-800 font-bold text-xs uppercase mb-2">
             <span>🚀</span> Opportunities
           </div>
-          <ul id="swot-opportunities" class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <ul id="swot-opportunities" class="text-xs text-blue-950 space-y-1 list-disc list-inside leading-relaxed">
             <li>Potential for market expansion</li>
             <li>Partnership opportunities</li>
           </ul>
         </div>
 
         <!-- Threats -->
-        <div class="bg-amber-950/30 border border-amber-800/40 rounded-xl p-4">
-          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm mb-2">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div class="flex items-center gap-1.5 text-amber-800 font-bold text-xs uppercase mb-2">
             <span>⚡</span> Threats
           </div>
-          <ul id="swot-threats" class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <ul id="swot-threats" class="text-xs text-amber-950 space-y-1 list-disc list-inside leading-relaxed">
             <li>Rapid technology changes</li>
             <li>Market uncertainty</li>
           </ul>
@@ -247,16 +252,16 @@
       </div>
     </div>
 
-    <!-- Next Action Banner -->
-    <div class="bg-gradient-to-r from-purple-900/40 via-indigo-900/40 to-blue-900/40 border border-purple-500/40 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- Handover Banner -->
+    <div class="saas-card p-6 border-l-4 border-l-purple-500 bg-purple-50/40 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div>
-        <h3 class="font-bold text-white text-base">Ready for Strategic Decision Layer?</h3>
-        <p class="text-gray-300 text-xs mt-1">
-          Pass these risk scores and SWOT insights directly into the Milestone 3 AI Recommendation engine.
+        <h3 class="font-bold text-slate-900 text-sm mb-0.5">Ready for Milestone 3 Recommendations?</h3>
+        <p class="text-slate-600 text-xs">
+          Pass these risk scores and SWOT results directly into the AI Recommendation engine.
         </p>
       </div>
       <a href="/recommendations/{{ project.id }}"
-         class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-semibold px-5 py-3 rounded-lg shadow-lg shadow-purple-900/40 transition shrink-0">
+         class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition shrink-0">
         <span>Proceed to Milestone 3</span>
         <span>→</span>
       </a>
@@ -310,11 +315,11 @@
 
     const badgeContainer = document.getElementById('display-risk-badge');
     if (riskScore >= 70) {
-      badgeContainer.innerHTML = '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/40">HIGH RISK</span>';
+      badgeContainer.innerHTML = '<span class="saas-badge badge-critical">HIGH RISK</span>';
     } else if (riskScore >= 40) {
-      badgeContainer.innerHTML = '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">MEDIUM RISK</span>';
+      badgeContainer.innerHTML = '<span class="saas-badge badge-high">MEDIUM RISK</span>';
     } else {
-      badgeContainer.innerHTML = '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/40">LOW RISK</span>';
+      badgeContainer.innerHTML = '<span class="saas-badge badge-emerald">LOW RISK</span>';
     }
 
     // 2. Feasibility calculation
@@ -334,16 +339,16 @@
     const verdictEl = document.getElementById('display-verdict');
     if (feasScore >= 80) {
       verdictEl.textContent = 'Highly Feasible';
-      verdictEl.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+      verdictEl.className = 'saas-badge badge-emerald';
     } else if (feasScore >= 60) {
       verdictEl.textContent = 'Feasible';
-      verdictEl.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40';
+      verdictEl.className = 'saas-badge badge-blue';
     } else if (feasScore >= 40) {
       verdictEl.textContent = 'Moderately Feasible';
-      verdictEl.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/40';
+      verdictEl.className = 'saas-badge badge-high';
     } else {
       verdictEl.textContent = 'Not Feasible';
-      verdictEl.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/40';
+      verdictEl.className = 'saas-badge badge-critical';
     }
 
     // 3. SWOT generation

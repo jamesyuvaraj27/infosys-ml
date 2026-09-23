@@ -1,141 +1,213 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard — Prediction AI{% endblock %}
 
 {% block content %}
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-  <div class="bg-gray-800 rounded-xl p-6">
-    <div class="text-blue-400 text-2xl mb-2">📁</div>
-    <div class="text-3xl font-bold">{{ count }}</div>
-    <div class="text-gray-400 text-sm">Total Projects</div>
+<!-- ───────────────────────────── Top KPI Statistics Strip ───────────────────────────── -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="saas-card p-5 border-l-4 border-l-blue-500">
+    <div class="flex items-center justify-between text-xs text-slate-500 mb-1 font-medium">
+      <span>Total Projects</span>
+      <span class="text-blue-600 text-base">📁</span>
+    </div>
+    <div class="text-3xl font-bold text-slate-900 font-mono">{{ count }}</div>
+    <div class="mt-1 text-xs text-slate-400">Stored in Database</div>
   </div>
-  <div class="bg-gray-800 rounded-xl p-6">
-    <div class="text-purple-400 text-2xl mb-2">🏭</div>
-    <div class="text-3xl font-bold">{{ projects | map(attribute='industry') | unique | list | length }} Industries</div>
-    <div class="text-gray-400 text-sm">Market Analyzed</div>
+
+  <div class="saas-card p-5 border-l-4 border-l-purple-500">
+    <div class="flex items-center justify-between text-xs text-slate-500 mb-1 font-medium">
+      <span>Industries Analyzed</span>
+      <span class="text-purple-600 text-base">🏭</span>
+    </div>
+    <div class="text-3xl font-bold text-slate-900 font-mono">
+      {{ projects | map(attribute='industry') | unique | list | length }}
+    </div>
+    <div class="mt-1 text-xs text-slate-400">Market Coverage</div>
   </div>
-  <div class="bg-gray-800 rounded-xl p-6">
-    <div class="text-pink-400 text-2xl mb-2">💰</div>
-    <div class="text-3xl font-bold">
+
+  <div class="saas-card p-5 border-l-4 border-l-amber-500">
+    <div class="flex items-center justify-between text-xs text-slate-500 mb-1 font-medium">
+      <span>Average Budget</span>
+      <span class="text-amber-600 text-base">💰</span>
+    </div>
+    <div class="text-2xl font-bold text-slate-900 font-mono truncate">
       {% if projects %}
         ₹{{ '{:,.0f}'.format((projects | sum(attribute='budget')) / (projects | length)) }}
       {% else %}
         ₹0
       {% endif %}
     </div>
-    <div class="text-gray-400 text-sm">Avg Budget</div>
+    <div class="mt-1 text-xs text-slate-400">Across All Projects</div>
   </div>
-  <div class="bg-gray-800 rounded-xl p-6">
-    <div class="text-green-400 text-2xl mb-2">✅</div>
-    <div class="text-3xl font-bold text-green-400">Active</div>
-    <div class="text-gray-400 text-sm">System Status</div>
+
+  <div class="saas-card p-5 border-l-4 border-l-emerald-500">
+    <div class="flex items-center justify-between text-xs text-slate-500 mb-1 font-medium">
+      <span>System Status</span>
+      <span class="text-emerald-600 text-base">✅</span>
+    </div>
+    <div class="text-3xl font-bold text-emerald-600 font-mono">Active</div>
+    <div class="mt-1 text-xs text-slate-400">All Modules Ready</div>
   </div>
 </div>
 
 {% if project %}
-<div class="grid md:grid-cols-3 gap-6 mb-10">
-  <div class="bg-gray-800 rounded-xl p-6 flex flex-col justify-between">
+<!-- ───────────────────────────── Single Project Details ───────────────────────────── -->
+<div class="grid lg:grid-cols-12 gap-6 mb-8">
+  
+  <!-- Left Panel: Project Details -->
+  <div class="lg:col-span-4 saas-card p-6 flex flex-col justify-between">
     <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold">Project Details</h2>
-        <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/40">Milestone 1</span>
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+        <div>
+          <span class="text-[11px] font-semibold text-blue-600 px-2 py-0.5 rounded bg-blue-50 border border-blue-100">
+            Project #{{ project.id }}
+          </span>
+          <h2 class="text-xl font-bold text-slate-900 mt-1">{{ project.startup_name }}</h2>
+        </div>
+        <span class="text-xs text-slate-500 font-medium">{{ project.industry }}</span>
       </div>
-      <dl class="space-y-3 text-sm">
-        <div><dt class="text-gray-400 text-xs">Startup</dt><dd class="font-semibold text-white text-base">{{ project.startup_name }}</dd></div>
-        <div><dt class="text-gray-400 text-xs">Industry</dt><dd class="font-medium text-gray-200">{{ project.industry }}</dd></div>
-        <div><dt class="text-gray-400 text-xs">Business Model</dt><dd class="font-medium text-gray-200">{{ project.business_model }}</dd></div>
-        <div><dt class="text-gray-400 text-xs">Target Market</dt><dd class="font-medium text-gray-200">{{ project.target_market or "—" }}</dd></div>
-        <div><dt class="text-gray-400 text-xs">Budget</dt><dd class="font-medium text-emerald-400">₹{{ '{:,.0f}'.format(project.budget or 0) }}</dd></div>
+
+      <dl class="space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-500">Business Model</dt>
+          <dd class="font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">{{ project.business_model }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-500">Target Market</dt>
+          <dd class="font-medium text-slate-800 max-w-[180px] text-right truncate">{{ project.target_market or "—" }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-500">Budget</dt>
+          <dd class="font-mono font-bold text-emerald-600 text-sm">₹{{ '{:,.0f}'.format(project.budget or 0) }}</dd>
+        </div>
+        {% if project.project_description %}
+        <div class="pt-2 border-t border-slate-100">
+          <dt class="text-slate-500 mb-1">Description</dt>
+          <dd class="text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            {{ project.project_description }}
+          </dd>
+        </div>
+        {% endif %}
       </dl>
     </div>
 
     <!-- Quick action links for current project -->
-    <div class="mt-6 pt-4 border-t border-gray-700 space-y-2">
-      <a href="/risk-assessment/{{ project.id }}" class="flex items-center justify-between w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 px-3 py-2 rounded-lg text-xs font-semibold transition">
-        <span>🛡️ Risk &amp; SWOT Assessment (M2)</span>
-        <span>→</span>
+    <div class="mt-6 pt-4 border-t border-slate-100 space-y-2">
+      <a href="/risk-assessment/{{ project.id }}" class="flex items-center justify-between w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition">
+        <span class="flex items-center gap-2">
+          <span>🛡️</span>
+          <span>Risk &amp; SWOT Assessment (M2)</span>
+        </span>
+        <span class="text-blue-600 font-mono">→</span>
       </a>
-      <a href="/recommendations/{{ project.id }}" class="flex items-center justify-between w-full bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 px-3 py-2 rounded-lg text-xs font-semibold transition">
-        <span>🎯 AI Recommendations &amp; Reasoning (M3)</span>
-        <span>→</span>
+      <a href="/recommendations/{{ project.id }}" class="flex items-center justify-between w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition">
+        <span class="flex items-center gap-2">
+          <span>🎯</span>
+          <span>AI Recommendations (M3)</span>
+        </span>
+        <span class="text-purple-600 font-mono">→</span>
       </a>
     </div>
   </div>
 
-  <div class="bg-gray-800 rounded-xl p-6">
-    <h2 class="text-lg font-bold mb-4">Market Analysis</h2>
+  <!-- Center Panel: Market Analysis -->
+  <div class="lg:col-span-4 saas-card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+        <span class="text-blue-600">📊</span> Market Analysis
+      </h2>
+      <span class="text-xs text-slate-400">TAM / SAM / SOM</span>
+    </div>
+
     <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-      <div class="bg-blue-600/10 border border-blue-600/30 rounded-lg p-3">
-        <div class="text-blue-400 font-bold">{{ market_data.tam }}</div>
-        <div class="text-gray-400 text-xs">TAM</div>
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-2.5">
+        <div class="text-blue-700 font-bold font-mono text-sm">{{ market_data.tam }}</div>
+        <div class="text-slate-500 text-[10px] font-semibold mt-0.5">TAM</div>
       </div>
-      <div class="bg-purple-600/10 border border-purple-600/30 rounded-lg p-3">
-        <div class="text-purple-400 font-bold">{{ market_data.sam }}</div>
-        <div class="text-gray-400 text-xs">SAM</div>
+      <div class="bg-purple-50 border border-purple-100 rounded-lg p-2.5">
+        <div class="text-purple-700 font-bold font-mono text-sm">{{ market_data.sam }}</div>
+        <div class="text-slate-500 text-[10px] font-semibold mt-0.5">SAM</div>
       </div>
-      <div class="bg-pink-600/10 border border-pink-600/30 rounded-lg p-3">
-        <div class="text-pink-400 font-bold">{{ market_data.som }}</div>
-        <div class="text-gray-400 text-xs">SOM</div>
+      <div class="bg-pink-50 border border-pink-100 rounded-lg p-2.5">
+        <div class="text-pink-700 font-bold font-mono text-sm">{{ market_data.som }}</div>
+        <div class="text-slate-500 text-[10px] font-semibold mt-0.5">SOM</div>
       </div>
     </div>
-    <canvas id="marketTrendChart" height="160"></canvas>
+    
+    <div class="pt-1">
+      <canvas id="marketTrendChart" height="150"></canvas>
+    </div>
   </div>
 
-  <div class="bg-gray-800 rounded-xl p-6">
-    <h2 class="text-lg font-bold mb-4">Competitor Landscape</h2>
-    <div class="space-y-3 mb-4">
+  <!-- Right Panel: Competitor Landscape -->
+  <div class="lg:col-span-4 saas-card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+        <span class="text-purple-600">🏢</span> Competitor Landscape
+      </h2>
+      <span class="text-xs text-slate-400">Market Share</span>
+    </div>
+
+    <div class="space-y-2.5 mb-4">
       {% for c in competitors %}
-      <div>
-        <div class="flex justify-between text-sm mb-1">
-          <span>{{ c.name }}</span>
-          <span class="text-gray-400">{{ c.revenue }} · <span class="text-green-400">{{ c.growth }}</span></span>
+      <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+        <div class="flex justify-between text-xs mb-1 font-medium">
+          <span class="text-slate-800">{{ c.name }}</span>
+          <span class="text-slate-500 font-mono text-[11px]">{{ c.revenue }} · <span class="text-emerald-600 font-semibold">{{ c.growth }}</span></span>
         </div>
-        <div class="w-full bg-gray-700 rounded-full h-2">
-          <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" style="width: {{ c.market_share }}%"></div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full" style="width: {{ c.market_share }}%"></div>
         </div>
       </div>
       {% endfor %}
     </div>
-    <canvas id="competitorChart" height="160"></canvas>
+
+    <div class="pt-1">
+      <canvas id="competitorChart" height="130"></canvas>
+    </div>
   </div>
+
 </div>
 {% else %}
-<div class="bg-gray-800 rounded-xl p-8 mb-10">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-700">
+<!-- ───────────────────────────── All Projects Table View ───────────────────────────── -->
+<div class="saas-card p-6 mb-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
     <div>
-      <h2 class="text-xl font-bold text-white">All Projects</h2>
-      <p class="text-xs text-gray-400">Select any project to explore Milestone 1, 2, or 3</p>
+      <h2 class="text-lg font-bold text-slate-900">All Projects</h2>
+      <p class="text-xs text-slate-500 mt-0.5">Select any project to explore Milestone 1, 2, or 3</p>
     </div>
-    <a href="/submit" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
+    <a href="/submit" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition">
       <span>+ New Project</span>
     </a>
   </div>
 
   {% if projects %}
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm text-gray-300">
-      <thead class="text-xs uppercase bg-gray-900/60 text-gray-400 border-b border-gray-700">
+    <table class="w-full text-left text-xs text-slate-700">
+      <thead class="uppercase bg-slate-100 text-slate-600 border-b border-slate-200 font-semibold text-[11px]">
         <tr>
           <th class="px-4 py-3">#</th>
-          <th class="px-4 py-3">Startup</th>
+          <th class="px-4 py-3">Startup Name</th>
           <th class="px-4 py-3">Industry</th>
-          <th class="px-4 py-3">Model</th>
+          <th class="px-4 py-3">Business Model</th>
           <th class="px-4 py-3">Budget</th>
           <th class="px-4 py-3 text-right">Explore Milestones</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-700">
+      <tbody class="divide-y divide-slate-100">
         {% for p in projects %}
-        <tr class="hover:bg-gray-700/30 transition">
-          <td class="px-4 py-3 text-gray-500 font-mono">{{ p.id }}</td>
-          <td class="px-4 py-3 font-semibold text-white">{{ p.startup_name }}</td>
-          <td class="px-4 py-3">{{ p.industry }}</td>
-          <td class="px-4 py-3">{{ p.business_model }}</td>
-          <td class="px-4 py-3 text-emerald-400 font-medium">₹{{ '{:,.0f}'.format(p.budget or 0) }}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            <a href="/dashboard/{{ p.id }}" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2.5 py-1 rounded transition">M1 Data</a>
-            <a href="/risk-assessment/{{ p.id }}" class="text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded transition">M2 Risk/SWOT</a>
-            <a href="/recommendations/{{ p.id }}" class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 px-2.5 py-1 rounded transition">M3 Recs</a>
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 text-slate-400 font-mono">#{{ p.id }}</td>
+          <td class="px-4 py-3 font-bold text-slate-900">{{ p.startup_name }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700">{{ p.industry }}</span>
+          </td>
+          <td class="px-4 py-3 text-slate-600">{{ p.business_model }}</td>
+          <td class="px-4 py-3 text-emerald-700 font-mono font-semibold">₹{{ '{:,.0f}'.format(p.budget or 0) }}</td>
+          <td class="px-4 py-3 text-right space-x-1.5">
+            <a href="/dashboard/{{ p.id }}" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded border border-slate-200 transition font-medium">M1 Data</a>
+            <a href="/risk-assessment/{{ p.id }}" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded transition font-medium">M2 Risk/SWOT</a>
+            <a href="/recommendations/{{ p.id }}" class="text-[11px] bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-2.5 py-1 rounded transition font-bold">M3 Recommendations</a>
           </td>
         </tr>
         {% endfor %}
@@ -143,9 +215,10 @@
     </table>
   </div>
   {% else %}
-  <div class="text-center py-8">
-    <p class="text-gray-400 mb-4">No project submitted yet.</p>
-    <a href="/submit" class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+  <div class="text-center py-12">
+    <div class="text-4xl mb-2">📁</div>
+    <p class="text-slate-500 text-sm mb-4">No project submitted yet.</p>
+    <a href="/submit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold shadow-sm transition">
       Submit Your First Project →
     </a>
   </div>
@@ -153,39 +226,56 @@
 </div>
 {% endif %}
 
-<!-- Interactive Milestone Roadmap -->
-<div class="bg-gray-800 rounded-xl p-6">
-  <h2 class="text-lg font-bold mb-4">Interactive Milestone Pipeline</h2>
+<!-- ───────────────────────────── Milestone Roadmap ───────────────────────────── -->
+<div class="saas-card p-6">
+  <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+    <div>
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+        <span>🗺️</span> Milestone Roadmap
+      </h2>
+      <p class="text-xs text-slate-500 mt-0.5">Three-stage integrated pipeline</p>
+    </div>
+  </div>
+
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     
+    <!-- Milestone 1 Card -->
     <a href="{% if project %}/dashboard/{{ project.id }}{% elif latest %}/dashboard/{{ latest.id }}{% else %}/submit{% endif %}"
-       class="block border border-green-600/40 bg-green-600/10 hover:bg-green-600/20 rounded-xl p-4 transition group">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-green-400 text-xs font-semibold">Milestone 1</span>
-        <span class="text-green-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+       class="block saas-card p-5 border-l-4 border-l-blue-500 hover:border-blue-600 transition group">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-blue-700 text-xs font-semibold bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+          Milestone 1
+        </span>
+        <span class="text-blue-600 text-xs group-hover:translate-x-1 transition-transform">→</span>
       </div>
-      <div class="font-bold text-white text-base">Project Ingestion &amp; Market Data</div>
-      <div class="text-xs text-gray-400 mt-1">Form inputs, TAM/SAM/SOM, and competitor intelligence.</div>
+      <div class="font-bold text-slate-900 text-sm mb-1">Project Ingestion &amp; Market Data</div>
+      <div class="text-xs text-slate-500 leading-relaxed">Form inputs, PostgreSQL storage, TAM/SAM/SOM market sizing, and competitor intelligence.</div>
     </a>
 
+    <!-- Milestone 2 Card -->
     <a href="{% if project %}/risk-assessment/{{ project.id }}{% elif latest %}/risk-assessment/{{ latest.id }}{% else %}/submit{% endif %}"
-       class="block border border-blue-600/40 bg-blue-600/10 hover:bg-blue-600/20 rounded-xl p-4 transition group">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-blue-400 text-xs font-semibold">Milestone 2</span>
-        <span class="text-blue-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+       class="block saas-card p-5 border-l-4 border-l-emerald-500 hover:border-emerald-600 transition group">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-emerald-700 text-xs font-semibold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+          Milestone 2
+        </span>
+        <span class="text-emerald-600 text-xs group-hover:translate-x-1 transition-transform">→</span>
       </div>
-      <div class="font-bold text-white text-base">Risk Assessment &amp; SWOT Analysis</div>
-      <div class="text-xs text-gray-400 mt-1">Scoring engine, 4-quadrant SWOT matrix &amp; feasibility assessment.</div>
+      <div class="font-bold text-slate-900 text-sm mb-1">Risk Assessment &amp; SWOT Analysis</div>
+      <div class="text-xs text-slate-500 leading-relaxed">5-factor scoring engine, 4-quadrant SWOT matrix, success probability, and feasibility score.</div>
     </a>
 
+    <!-- Milestone 3 Card -->
     <a href="{% if project %}/recommendations/{{ project.id }}{% elif latest %}/recommendations/{{ latest.id }}{% else %}/submit{% endif %}"
-       class="block border border-purple-600/40 bg-purple-600/10 hover:bg-purple-600/20 rounded-xl p-4 transition group">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-purple-400 text-xs font-semibold">Milestone 3</span>
-        <span class="text-purple-400 text-xs group-hover:translate-x-1 transition-transform">→</span>
+       class="block saas-card p-5 border-l-4 border-l-purple-500 hover:border-purple-600 transition group bg-purple-50/20">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-purple-700 text-xs font-semibold bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">
+          Milestone 3
+        </span>
+        <span class="text-purple-600 text-xs group-hover:translate-x-1 transition-transform">→</span>
       </div>
-      <div class="font-bold text-white text-base">AI Decision &amp; Strategic Reasoning</div>
-      <div class="text-xs text-gray-400 mt-1">Actionable recommendations, risk mitigations &amp; LangGraph flow.</div>
+      <div class="font-bold text-slate-900 text-sm mb-1">Recommendations &amp; Strategic Reasoning</div>
+      <div class="text-xs text-slate-500 leading-relaxed">Actionable recommendations, risk mitigation strategies, LangGraph workflow, and final report.</div>
     </a>
 
   </div>

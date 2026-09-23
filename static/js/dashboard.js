@@ -1,4 +1,4 @@
-Chart.defaults.color = '#9CA3AF';
+Chart.defaults.color = '#64748B';
 Chart.defaults.font.family = 'Inter';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const trendCanvas = document.getElementById('marketTrendChart');
   if (trendCanvas && marketData && marketData.market_trend) {
     const ctx = trendCanvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+    gradient.addColorStop(1, 'rgba(37, 99, 235, 0.02)');
 
     new Chart(trendCanvas, {
       type: 'line',
@@ -20,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             label: 'Market Size',
             data: marketData.market_trend.map((p) => p.value),
-            borderColor: '#3B82F6',
+            borderColor: '#2563EB',
+            borderWidth: 2,
             backgroundColor: gradient,
             fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#3B82F6',
+            tension: 0.35,
+            pointBackgroundColor: '#2563EB',
+            pointRadius: 3,
           },
         ],
       },
@@ -32,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#9CA3AF' } },
-          y: { grid: { display: false }, ticks: { color: '#9CA3AF' } },
+          x: { grid: { color: '#F1F5F9' }, ticks: { color: '#64748B', font: { size: 11 } } },
+          y: { grid: { color: '#F1F5F9' }, ticks: { color: '#64748B', font: { size: 11 } } },
         },
       },
     });
@@ -48,15 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
         datasets: [
           {
             data: competitors.map((c) => c.market_share),
-            backgroundColor: ['#3B82F6', '#A855F7', '#EC4899'],
-            borderWidth: 0,
+            backgroundColor: ['#2563EB', '#7C3AED', '#EC4899', '#10B981'],
+            borderWidth: 2,
+            borderColor: '#FFFFFF',
           },
         ],
       },
       options: {
         responsive: true,
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#9CA3AF' } },
+          legend: { position: 'bottom', labels: { color: '#475569', boxWidth: 12, font: { size: 11 } } },
         },
       },
     });
