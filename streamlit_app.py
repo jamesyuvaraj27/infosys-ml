@@ -1,0 +1,758 @@
+"""Streamlit unified application for Prediction AI (ML Market Intelligence).
+
+Includes:
+- Milestone 1: Project Submission, Database Explorer, TAM/SAM/SOM Market Sizing, Competitor Landscape.
+- Milestone 2: 5-Factor Risk Scoring Engine, SWOT Analysis Matrix, Feasibility Assessment.
+- Milestone 3: AI Recommendations Engine, Risk Mitigation Action Cards, LangGraph Reasoning Workflow, Final Assessment Report.
+"""
+import streamlit as st
+import json
+import pandas as pd
+
+from database import (
+    get_all_projects,
+    get_project_by_id,
+    get_project_count,
+    init_db,
+    insert_project,
+    init_milestone3_tables,
+    save_recommendations,
+    save_mitigations,
+    get_recommendations,
+    get_mitigations,
+)
+from market_analysis import get_competitors, get_market_data
+from risk_engine import (
+    calculate_risk,
+    calculate_success_probability,
+    get_risk_status,
+)
+from swot_analysis import generate_swot
+from feasibility import calculate_feasibility
+from recommendation_engine import generate_recommendations
+from risk_mitigation import generate_mitigations
+from workflow import run_workflow, WORKFLOW_STEPS
+
+# Initialize Databases
+init_db()
+init_milestone3_tables()
+
+# Configure Page
+st.set_page_config(
+    page_title="Prediction AI — ML Market Intelligence",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Premium SaaS Light Theme CSS matching the Vercel/Tailwind UI
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .stApp {
+        background-color: #f8fafc;
+        color: #0f172a;
+    }
+    
+    /* Top Brand Bar */
+    .brand-header {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    
+    .brand-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .brand-badge {
+        background: #2563eb;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+
+    /* KPI Cards */
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        margin-bottom: 12px;
+    }
+    .kpi-blue { border-left: 5px solid #2563eb; }
+    .kpi-purple { border-left: 5px solid #7c3aed; }
+    .kpi-amber { border-left: 5px solid #f59e0b; }
+    .kpi-emerald { border-left: 5px solid #10b981; }
+    .kpi-red { border-left: 5px solid #ef4444; }
+
+    .kpi-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .kpi-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #0f172a;
+        font-family: 'JetBrains Mono', monospace;
+        margin-top: 4px;
+    }
+    .kpi-subtext {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* Content Cards */
+    .saas-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    
+    /* SWOT Quadrants */
+    .swot-card {
+        border-radius: 10px;
+        padding: 16px;
+        height: 100%;
+    }
+    .swot-s { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .swot-w { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .swot-o { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .swot-t { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+    /* Action Recommendation Card */
+    .rec-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border-left: 4px solid #7c3aed;
+    }
+
+    /* Tag badges */
+    .tag-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .tag-critical { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .tag-high { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .tag-medium { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; }
+    .tag-low { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Header Section
+st.markdown(
+    """
+    <div class="brand-header">
+        <div class="brand-title">
+            <span class="brand-badge">AI</span>
+            <span>Prediction AI</span>
+            <span style="font-size: 12px; color: #64748b; font-weight: 500;">— ML Market Intelligence & Decision Support</span>
+        </div>
+        <div style="font-size: 12px; color: #64748b; font-weight: 600;">
+            <span style="color: #2563eb;">M1 Data</span> • 
+            <span style="color: #059669;">M2 Risk/SWOT</span> • 
+            <span style="color: #7c3aed;">M3 Recommendations</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Fetch Data
+all_projects = get_all_projects()
+project_count = get_project_count()
+
+# Sidebar Navigation
+with st.sidebar:
+    st.markdown("### 🧭 Navigation")
+    nav_selection = st.radio(
+        "Select Milestone View:",
+        [
+            "📊 Dashboard (Milestone 1)",
+            "➕ Submit Project (Milestone 1)",
+            "🛡️ Risk Assessment & SWOT (Milestone 2)",
+            "🎯 Recommendations & Reasoning (Milestone 3)",
+        ],
+        index=0,
+    )
+    
+    st.divider()
+    
+    if all_projects:
+        st.markdown("### 📁 Select Active Project")
+        project_dict = {f"#{p['id']} - {p['startup_name']} ({p['industry']})": p["id"] for p in all_projects}
+        selected_project_label = st.selectbox("Current Project:", list(project_dict.keys()), key="global_project_select")
+        active_project_id = project_dict[selected_project_label]
+        selected_project = get_project_by_id(active_project_id)
+    else:
+        selected_project = None
+        st.info("No projects in database yet. Use 'Submit Project' to create one.")
+
+# ==============================================================================
+# TAB 1: DASHBOARD (MILESTONE 1)
+# ==============================================================================
+if nav_selection == "📊 Dashboard (Milestone 1)":
+    st.markdown("## 📊 Milestone 1 — Project Dashboard & Market Intelligence")
+    st.caption("Live project ingestion, PostgreSQL/SQLite storage, TAM/SAM/SOM market sizing, and competitor analysis.")
+    
+    # KPI Strip
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    with kpi1:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-blue">
+                <div class="kpi-label">📁 Total Projects</div>
+                <div class="kpi-value">{project_count}</div>
+                <div class="kpi-subtext">Stored in Database</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with kpi2:
+        num_industries = len(set(p["industry"] for p in all_projects)) if all_projects else 0
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-label">🏭 Industries Analyzed</div>
+                <div class="kpi-value">{num_industries}</div>
+                <div class="kpi-subtext">Market Coverage</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with kpi3:
+        avg_budget = sum(float(p["budget"] or 0) for p in all_projects) / len(all_projects) if all_projects else 0
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-amber">
+                <div class="kpi-label">💰 Average Budget</div>
+                <div class="kpi-value">₹{avg_budget:,.0f}</div>
+                <div class="kpi-subtext">Across All Projects</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with kpi4:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-emerald">
+                <div class="kpi-label">✅ System Status</div>
+                <div class="kpi-value" style="color: #10b981;">Active</div>
+                <div class="kpi-subtext">All Modules Ready</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if selected_project:
+        col_proj, col_market, col_comp = st.columns([1.2, 1.2, 1.2])
+        
+        market_data = get_market_data(selected_project["industry"], selected_project["budget"])
+        competitors = get_competitors(selected_project["industry"])
+        
+        with col_proj:
+            st.markdown(
+                f"""
+                <div class="saas-box" style="height: 100%;">
+                    <div style="font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 4px; display: inline-block;">
+                        Project #{selected_project['id']}
+                    </div>
+                    <h3 style="margin-top: 8px; margin-bottom: 4px; font-weight: 800;">{selected_project['startup_name']}</h3>
+                    <p style="font-size: 12px; color: #64748b;"><strong>Industry:</strong> {selected_project['industry']} | <strong>Model:</strong> {selected_project['business_model']}</p>
+                    <p style="font-size: 12px; color: #64748b;"><strong>Target Market:</strong> {selected_project.get('target_market') or '—'}</p>
+                    <div style="font-size: 20px; font-weight: 800; color: #059669; font-family: monospace; margin: 10px 0;">
+                        ₹{float(selected_project['budget'] or 0):,.0f}
+                    </div>
+                    <div style="font-size: 12px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 10px;">
+                        <strong>Description:</strong><br>{selected_project.get('project_description') or 'No description provided.'}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        
+        with col_market:
+            st.markdown(
+                f"""
+                <div class="saas-box" style="height: 100%;">
+                    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 12px;">
+                        📊 Market Analysis (TAM/SAM/SOM)
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; margin-bottom: 16px;">
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px;">
+                            <div style="font-size: 15px; font-weight: 800; color: #1e40af; font-family: monospace;">{market_data['tam']}</div>
+                            <div style="font-size: 10px; font-weight: 700; color: #64748b;">TAM</div>
+                        </div>
+                        <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 8px;">
+                            <div style="font-size: 15px; font-weight: 800; color: #6d28d9; font-family: monospace;">{market_data['sam']}</div>
+                            <div style="font-size: 10px; font-weight: 700; color: #64748b;">SAM</div>
+                        </div>
+                        <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 8px;">
+                            <div style="font-size: 15px; font-weight: 800; color: #be185d; font-family: monospace;">{market_data['som']}</div>
+                            <div style="font-size: 10px; font-weight: 700; color: #64748b;">SOM</div>
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            # Market growth chart
+            trend_df = pd.DataFrame({
+                "Year": market_data["trend"]["years"],
+                "Market Size ($B)": market_data["trend"]["values"]
+            })
+            st.line_chart(trend_df.set_index("Year"), height=160)
+        
+        with col_comp:
+            st.markdown(
+                """
+                <div class="saas-box">
+                    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 12px;">
+                        🏢 Competitor Landscape
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            comp_df = pd.DataFrame([
+                {"Competitor": c["name"], "Market Share (%)": c["market_share"], "Revenue": c["revenue"], "Growth": c["growth"]}
+                for c in competitors
+            ])
+            st.dataframe(comp_df, use_container_width=True, hide_index=True)
+            st.bar_chart(comp_df.set_index("Competitor")["Market Share (%)"], height=160)
+
+    # All Projects Table
+    st.markdown("### 📋 All Stored Projects")
+    if all_projects:
+        table_df = pd.DataFrame([
+            {
+                "ID": f"#{p['id']}",
+                "Startup Name": p["startup_name"],
+                "Industry": p["industry"],
+                "Business Model": p["business_model"],
+                "Budget": f"₹{float(p['budget'] or 0):,.0f}",
+                "Target Market": p.get("target_market", "—"),
+            }
+            for p in all_projects
+        ])
+        st.dataframe(table_df, use_container_width=True, hide_index=True)
+
+# ==============================================================================
+# TAB 2: SUBMIT PROJECT (MILESTONE 1 FORM)
+# ==============================================================================
+elif nav_selection == "➕ Submit Project (Milestone 1)":
+    st.markdown("## ➕ Submit New Project (Milestone 1)")
+    st.caption("Enter your startup details below to save into the database and initialize risk analysis.")
+    
+    with st.form("new_project_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            startup_name = st.text_input("Startup Name *", placeholder="e.g. HealthAI Diagnostics")
+            industry = st.selectbox("Industry *", [
+                "Technology", "Healthcare", "Education", "Finance",
+                "E-commerce", "Food & Beverage", "Agriculture", "Other"
+            ])
+            business_model = st.selectbox("Business Model *", ["B2B", "B2C", "B2B2C", "Marketplace", "SaaS", "D2C"])
+        
+        with col2:
+            target_market = st.text_input("Target Market", placeholder="e.g. Hospitals & Clinics in South Asia")
+            budget = st.number_input("Project Budget (₹)", min_value=0.0, step=10000.0, value=200000.0)
+            project_description = st.text_area("Project Description", placeholder="Brief description of the product, value proposition, and core capabilities...")
+        
+        submit_btn = st.form_submit_button("🚀 Submit Project", use_container_width=True)
+        
+        if submit_btn:
+            if not startup_name.strip():
+                st.error("Please provide a Startup Name.")
+            else:
+                new_project_data = {
+                    "startup_name": startup_name.strip(),
+                    "industry": industry,
+                    "business_model": business_model,
+                    "target_market": target_market.strip(),
+                    "budget": budget,
+                    "project_description": project_description.strip(),
+                }
+                new_id = insert_project(new_project_data)
+                st.success(f"✅ Project #{new_id} '{startup_name}' successfully submitted and saved to Database!")
+                st.info("Switch to the '📊 Dashboard' or '🛡️ Risk Assessment' tab from the sidebar to inspect analysis.")
+
+# ==============================================================================
+# TAB 3: RISK ASSESSMENT & SWOT (MILESTONE 2)
+# ==============================================================================
+elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
+    if not selected_project:
+        st.warning("Please submit a project first.")
+        st.stop()
+        
+    st.markdown(f"## 🛡️ Milestone 2 — Risk Assessment & SWOT Analysis")
+    st.caption(f"Analyzing: **{selected_project['startup_name']}** ({selected_project['industry']}) • Budget: ₹{float(selected_project['budget'] or 0):,.0f}")
+    
+    col_inputs, col_results = st.columns([1.1, 1.4])
+    
+    with col_inputs:
+        st.markdown(
+            """
+            <div class="saas-box">
+                <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 8px;">
+                    ⚙️ 5-Factor Risk Scoring Engine (1 to 5 Scale)
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        
+        market_risk = st.slider("1. Market Competition Risk", 1, 5, 3, help="Uncertainty about customer demand and competitive pressure.")
+        financial_risk = st.slider("2. Financial / Capital Risk", 1, 5, 3, help="Sufficiency of funding vs runway needed.")
+        competition_risk = st.slider("3. Competitor Dominance Risk", 1, 5, 3, help="Threat from incumbents with high market share.")
+        technical_risk = st.slider("4. Technical / Feasibility Risk", 1, 5, 2, help="Complexity of AI/ML or tech stack.")
+        operational_risk = st.slider("5. Operational / Team Risk", 1, 5, 2, help="Execution capability, team size, compliance.")
+        
+        # Calculate Risk and Feasibility
+        user_risks = {
+            "market_risk": market_risk,
+            "financial_risk": financial_risk,
+            "competition_risk": competition_risk,
+            "technical_risk": technical_risk,
+            "operational_risk": operational_risk,
+        }
+        
+        avg_risk, risk_status = calculate_risk(
+            market_risk=market_risk,
+            financial_risk=financial_risk,
+            competition_risk=competition_risk,
+            technical_risk=technical_risk,
+            operational_risk=operational_risk,
+        )
+        success_prob = calculate_success_probability(avg_risk)
+        feasibility_score, feasibility_label, verdict_description = calculate_feasibility(
+            avg_risk, float(selected_project["budget"] or 0), selected_project["industry"]
+        )
+        swot = generate_swot(selected_project, user_risks)
+    
+    with col_results:
+        # Score KPIs
+        r_kpi1, r_kpi2, r_kpi3 = st.columns(3)
+        with r_kpi1:
+            st.markdown(
+                f"""
+                <div class="kpi-card kpi-amber">
+                    <div class="kpi-label">Overall Risk</div>
+                    <div class="kpi-value">{avg_risk:.1f} <span style="font-size: 14px; color: #64748b;">/ 5</span></div>
+                    <div class="kpi-subtext" style="font-weight: 700; color: #d97706;">{risk_status} Risk</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with r_kpi2:
+            st.markdown(
+                f"""
+                <div class="kpi-card kpi-emerald">
+                    <div class="kpi-label">Success Probability</div>
+                    <div class="kpi-value">{success_prob:.0f}%</div>
+                    <div class="kpi-subtext">Statistical Projection</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with r_kpi3:
+            st.markdown(
+                f"""
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-label">Feasibility Score</div>
+                    <div class="kpi-value">{feasibility_score:.0f}%</div>
+                    <div class="kpi-subtext" style="font-weight: 700; color: #7c3aed;">{feasibility_label}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        
+        # Risk Distribution Chart
+        risk_chart_df = pd.DataFrame({
+            "Factor": ["Market", "Financial", "Competition", "Technical", "Operational"],
+            "Risk Score (1-5)": [market_risk, financial_risk, competition_risk, technical_risk, operational_risk]
+        })
+        st.bar_chart(risk_chart_df.set_index("Factor"), height=180)
+
+    # 4-Quadrant SWOT Analysis Matrix
+    st.markdown("### 🧩 4-Quadrant SWOT Analysis Matrix")
+    swot_c1, swot_c2 = st.columns(2)
+    with swot_c1:
+        st.markdown(
+            f"""
+            <div class="swot-card swot-s">
+                <h4 style="margin: 0 0 8px 0; font-weight: 800;">💪 STRENGTHS (Internal)</h4>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('strengths', []))}</ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="swot-card swot-o">
+                <h4 style="margin: 0 0 8px 0; font-weight: 800;">🚀 OPPORTUNITIES (External)</h4>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('opportunities', []))}</ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with swot_c2:
+        st.markdown(
+            f"""
+            <div class="swot-card swot-w">
+                <h4 style="margin: 0 0 8px 0; font-weight: 800;">⚠️ WEAKNESSES (Internal)</h4>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('weaknesses', []))}</ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="swot-card swot-t">
+                <h4 style="margin: 0 0 8px 0; font-weight: 800;">🛑 THREATS (External)</h4>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('threats', []))}</ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+# ==============================================================================
+# TAB 4: RECOMMENDATIONS & REASONING (MILESTONE 3)
+# ==============================================================================
+elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
+    if not selected_project:
+        st.warning("Please submit a project first.")
+        st.stop()
+        
+    st.markdown(f"## 🎯 Milestone 3 — AI Recommendations & Strategic Reasoning")
+    st.caption(f"Decision Support Layer for: **{selected_project['startup_name']}**")
+    
+    # Calculate risks & generate recommendations
+    user_risks = {"market_risk": 3, "financial_risk": 3, "competition_risk": 3, "technical_risk": 2, "operational_risk": 2}
+    avg_risk, risk_status = calculate_risk(**user_risks)
+    feasibility_score, feasibility_label, verdict_description = calculate_feasibility(
+        avg_risk, float(selected_project["budget"] or 0), selected_project["industry"]
+    )
+    swot = generate_swot(selected_project, user_risks)
+    
+    # Check existing recommendations in DB or generate fresh
+    existing_recs = get_recommendations(selected_project["id"])
+    if not existing_recs:
+        generated_recs = generate_recommendations(
+            project=selected_project,
+            risk_scores=user_risks,
+            swot=swot,
+            feasibility_score=feasibility_score,
+            feasibility_label=feasibility_label,
+        )
+        save_recommendations(selected_project["id"], generated_recs)
+        existing_recs = generated_recs
+        
+    existing_mits = get_mitigations(selected_project["id"])
+    if not existing_mits:
+        generated_mits = generate_mitigations(user_risks)
+        save_mitigations(selected_project["id"], generated_mits)
+        existing_mits = generated_mits
+
+    # KPI Row
+    m3_k1, m3_k2, m3_k3, m3_k4 = st.columns(4)
+    with m3_k1:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-label">🎯 Recommendations</div>
+                <div class="kpi-value">{len(existing_recs)}</div>
+                <div class="kpi-subtext">Generated Actions</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with m3_k2:
+        critical_count = sum(1 for r in existing_recs if r.get("priority") in ["Critical", "High"])
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-red">
+                <div class="kpi-label">🚨 High/Critical Actions</div>
+                <div class="kpi-value" style="color: #dc2626;">{critical_count}</div>
+                <div class="kpi-subtext">Immediate Attention</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with m3_k3:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-amber">
+                <div class="kpi-label">⚠️ Risk Level</div>
+                <div class="kpi-value">{risk_status}</div>
+                <div class="kpi-subtext">Score: {avg_risk:.1f} / 5.0</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with m3_k4:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-emerald">
+                <div class="kpi-label">🏆 Feasibility</div>
+                <div class="kpi-value" style="color: #059669;">{feasibility_score:.0f}%</div>
+                <div class="kpi-subtext">{feasibility_label}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # 2-Column Layout: Left (Recommendations & Mitigations), Right (LangGraph Workflow)
+    m3_left, m3_right = st.columns([1.3, 1.1])
+    
+    with m3_left:
+        sub_tab = st.radio("View Decisions:", ["🎯 AI Recommendations", "🛡️ Risk Mitigations"], horizontal=True)
+        
+        if sub_tab == "🎯 AI Recommendations":
+            for r in existing_recs:
+                p_class = "tag-critical" if r.get("priority") == "Critical" else ("tag-high" if r.get("priority") == "High" else "tag-medium")
+                st.markdown(
+                    f"""
+                    <div class="rec-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="tag-badge {p_class}">{r.get('priority', 'Medium')} Priority</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b;">Category: {r.get('category', 'General')}</span>
+                        </div>
+                        <h4 style="margin: 4px 0 6px 0; font-weight: 800; color: #0f172a;">{r.get('title')}</h4>
+                        <p style="font-size: 13px; color: #334155; margin-bottom: 8px;">{r.get('description')}</p>
+                        <div style="font-size: 11px; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569;">
+                            <strong>Expected Impact:</strong> {r.get('expected_impact', 'N/A')}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            for m in existing_mits:
+                st.markdown(
+                    f"""
+                    <div class="rec-card" style="border-left-color: #2563eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="tag-badge tag-high">Risk Factor: {m.get('risk_factor')}</span>
+                            <span style="font-size: 11px; color: #64748b;">Owner: <strong>{m.get('owner', 'Team')}</strong> | Cost: <strong>{m.get('cost_impact', 'Low')}</strong></span>
+                        </div>
+                        <h4 style="margin: 4px 0 6px 0; font-weight: 800; color: #0f172a;">{m.get('strategy_name')}</h4>
+                        <p style="font-size: 13px; color: #334155; margin-bottom: 8px;">{m.get('details')}</p>
+                        <div style="font-size: 11px; background: #f0fdf4; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0; color: #166534;">
+                            <strong>Timeline:</strong> {m.get('timeline', 'Immediate')}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                
+    with m3_right:
+        st.markdown(
+            """
+            <div class="saas-box">
+                <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 8px;">
+                    🧠 5-Stage LangGraph Reasoning Pipeline
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        
+        if st.button("⚡ Run Live Reasoning Workflow", use_container_width=True):
+            with st.spinner("Executing 5-stage reasoning workflow..."):
+                final_workflow_state = run_workflow(
+                    project=selected_project,
+                    risk_scores=user_risks,
+                    swot=swot,
+                    feasibility={"score": feasibility_score, "label": feasibility_label},
+                    recommendations=existing_recs,
+                    mitigations=existing_mits,
+                )
+                st.session_state["workflow_state"] = final_workflow_state
+        
+        workflow_data = st.session_state.get("workflow_state")
+        
+        # Display Stages
+        stages = [
+            ("1. Data Ingestion", "📥 Ingests Milestone 1 & 2 inputs into state."),
+            ("2. Risk Analysis", "⚖️ Evaluates risk vectors and prioritizes critical flags."),
+            ("3. Strategic Reasoning", "💡 Formulates strategic recommendations and mitigations."),
+            ("4. Validation", "🛡️ Assesses budget runway and execution viability."),
+            ("5. Final Assessment Report", "📄 Produces executive verdict and summary score."),
+        ]
+        
+        for idx, (s_title, s_desc) in enumerate(stages, 1):
+            with st.expander(f"Stage {idx}: {s_title}", expanded=(idx <= 2 or workflow_data is not None)):
+                st.write(s_desc)
+                if workflow_data and "stage_outputs" in workflow_data and str(idx) in workflow_data["stage_outputs"]:
+                    st.json(workflow_data["stage_outputs"][str(idx)])
+                else:
+                    st.caption("Status: ✅ Ready to execute")
+
+    # Downloadable Final Assessment Report
+    st.divider()
+    st.markdown("### 📄 Final Assessment Report")
+    
+    report_content = f"""# PREDICTION AI — FINAL STRATEGIC ASSESSMENT REPORT
+Project Name: {selected_project['startup_name']}
+Industry: {selected_project['industry']}
+Business Model: {selected_project['business_model']}
+Budget: ₹{float(selected_project['budget'] or 0):,.0f}
+Target Market: {selected_project.get('target_market', 'N/A')}
+
+--- MILESTONE 2 ANALYSIS ---
+Overall Risk Score: {avg_risk:.1f} / 5.0 ({risk_status} Risk)
+Success Probability: {success_prob:.0f}%
+Feasibility Score: {feasibility_score:.0f}% ({feasibility_label})
+
+--- MILESTONE 3 RECOMMENDATIONS ---
+Total Recommended Actions: {len(existing_recs)}
+High/Critical Priority Items: {critical_count}
+
+Strategic Verdict: {verdict_description}
+"""
+    st.text_area("Executive Summary:", report_content, height=200)
+    st.download_button(
+        label="📥 Download Executive Assessment Report (.txt)",
+        data=report_content,
+        file_name=f"Prediction_AI_Report_{selected_project['startup_name'].replace(' ', '_')}.txt",
+        mime="text/plain",
+        use_container_width=True,
+    )
