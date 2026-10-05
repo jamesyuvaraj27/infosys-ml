@@ -331,11 +331,11 @@ if nav_selection == "📊 Dashboard (Milestone 1)":
                 """,
                 unsafe_allow_html=True,
             )
-            trend_df = pd.DataFrame({
-                "Year": market_data["trend"]["years"],
-                "Market Size ($B)": market_data["trend"]["values"]
-            })
-            st.line_chart(trend_df.set_index("Year"), height=160)
+            trend_data = market_data.get("market_trend", [])
+            if trend_data:
+                trend_df = pd.DataFrame(trend_data)
+                trend_df.rename(columns={"year": "Year", "value": "SAM Projection (₹)"}, inplace=True)
+                st.line_chart(trend_df.set_index("Year"), height=160)
         
         with col_comp:
             st.markdown(
