@@ -352,7 +352,7 @@ if nav_selection == "📊 Dashboard (Milestone 1)":
                 {"Competitor": c["name"], "Market Share (%)": c["market_share"], "Revenue": c["revenue"], "Growth": c["growth"]}
                 for c in competitors
             ])
-            st.dataframe(comp_df, use_container_width=True, hide_index=True)
+            st.dataframe(comp_df, hide_index=True)
             st.bar_chart(comp_df.set_index("Competitor")["Market Share (%)"], height=160)
 
     # All Projects Table
@@ -369,7 +369,7 @@ if nav_selection == "📊 Dashboard (Milestone 1)":
             }
             for p in all_projects
         ])
-        st.dataframe(table_df, use_container_width=True, hide_index=True)
+        st.dataframe(table_df, hide_index=True)
 
 # ==============================================================================
 # TAB 2: SUBMIT PROJECT (MILESTONE 1 FORM)
@@ -393,7 +393,7 @@ elif nav_selection == "➕ Submit Project (Milestone 1)":
             budget = st.number_input("Project Budget (₹)", min_value=0.0, step=10000.0, value=200000.0)
             project_description = st.text_area("Project Description", placeholder="Brief description of the product, value proposition, and core capabilities...")
         
-        submit_btn = st.form_submit_button("🚀 Submit Project", use_container_width=True)
+        submit_btn = st.form_submit_button("🚀 Submit Project")
         
         if submit_btn:
             if not startup_name.strip():
@@ -429,49 +429,71 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
             """
             <div class="saas-box">
                 <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 8px;">
-                    ⚙️ 5-Factor Risk Scoring Engine (1 to 5 Scale)
+                    ⚙️ Risk Assessment Factors
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         
-        market_risk = st.slider("1. Market Competition Risk", 1, 5, 3, help="Uncertainty about customer demand and competitive pressure.")
-        financial_risk = st.slider("2. Financial / Capital Risk", 1, 5, 3, help="Sufficiency of funding vs runway needed.")
-        competition_risk = st.slider("3. Competitor Dominance Risk", 1, 5, 3, help="Threat from incumbents with high market share.")
-        technical_risk = st.slider("4. Technical / Feasibility Risk", 1, 5, 2, help="Complexity of AI/ML or tech stack.")
-        operational_risk = st.slider("5. Operational / Team Risk", 1, 5, 2, help="Execution capability, team size, compliance.")
+        market_competition = st.selectbox("1. Market Competition", ["Low", "Medium", "High"], index=1)
+        team_expertise = st.selectbox("2. Team Technical Expertise", ["High", "Medium", "Low"], index=1)
+        resource_availability = st.selectbox("3. Resource Availability", ["Good", "Moderate", "Limited"], index=1)
+        innovation_level = st.selectbox("4. Innovation Level", ["High", "Medium", "Low"], index=1)
+        market_research = st.selectbox("5. Market Research Depth", ["Comprehensive", "Moderate", "Limited"], index=1)
         
-        user_risks = {
-            "market_risk": market_risk,
-            "financial_risk": financial_risk,
-            "competition_risk": competition_risk,
-            "technical_risk": technical_risk,
-            "operational_risk": operational_risk,
-        }
+        st.markdown("---")
+        st.caption("Feasibility Factors (0 - 100):")
+        f_market = st.slider("Market Opportunity", 0, 100, 70)
+        f_team = st.slider("Team Capability", 0, 100, 65)
+        f_comp = st.slider("Competitive Advantage", 0, 100, 60)
+        f_res = st.slider("Resource Readiness", 0, 100, 55)
         
-        avg_risk, risk_status = calculate_risk(
-            market_risk=market_risk,
-            financial_risk=financial_risk,
-            competition_risk=competition_risk,
-            technical_risk=technical_risk,
-            operational_risk=operational_risk,
+        # Calculate Risk and Feasibility using exact signatures
+        risk_score = calculate_risk(
+            market_competition=market_competition,
+            team_expertise=team_expertise,
+            resource_availability=resource_availability,
+            innovation_level=innovation_level,
+            market_research=market_research,
         )
-        success_prob = calculate_success_probability(avg_risk)
-        feasibility_score, feasibility_label, verdict_description = calculate_feasibility(
-            avg_risk, float(selected_project["budget"] or 0), selected_project["industry"]
+        risk_status = get_risk_status(risk_score)
+        success_prob = calculate_success_probability(risk_score)
+        
+        feasibility_score = calculate_feasibility(
+            market_opportunity=f_market,
+            team_capability=f_team,
+            competitive_advantage=f_comp,
+            resource_availability=f_res,
         )
-        swot = generate_swot(selected_project, user_risks)
+        
+        if feasibility_score >= 80:
+            feasibility_label = "Highly Feasible"
+        elif feasibility_score >= 60:
+            feasibility_label = "Feasible"
+        elif feasibility_score >= 40:
+            feasibility_label = "Moderately Feasible"
+        else:
+            feasibility_label = "Not Feasible"
+            
+        swot = generate_swot(
+            team_expertise=team_expertise,
+            innovation_level=innovation_level,
+            market_competition=market_competition,
+            resource_availability=resource_availability,
+            market_research=market_research,
+        )
     
     with col_results:
+        # Score KPIs
         r_kpi1, r_kpi2, r_kpi3 = st.columns(3)
         with r_kpi1:
             st.markdown(
                 f"""
                 <div class="kpi-card kpi-amber">
                     <div class="kpi-label">Overall Risk</div>
-                    <div class="kpi-value">{avg_risk:.1f} <span style="font-size: 14px; color: #64748b;">/ 5</span></div>
-                    <div class="kpi-subtext" style="font-weight: 700; color: #d97706;">{risk_status} Risk</div>
+                    <div class="kpi-value">{risk_score} <span style="font-size: 14px; color: #64748b;">/ 100</span></div>
+                    <div class="kpi-subtext" style="font-weight: 700; color: #d97706;">{risk_status}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -499,11 +521,12 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
                 unsafe_allow_html=True,
             )
         
-        risk_chart_df = pd.DataFrame({
-            "Factor": ["Market", "Financial", "Competition", "Technical", "Operational"],
-            "Risk Score (1-5)": [market_risk, financial_risk, competition_risk, technical_risk, operational_risk]
+        # Risk Breakdown chart
+        factors_df = pd.DataFrame({
+            "Dimension": ["Market Opportunity", "Team Capability", "Competitive Adv.", "Resource Readiness"],
+            "Score (0-100)": [f_market, f_team, f_comp, f_res]
         })
-        st.bar_chart(risk_chart_df.set_index("Factor"), height=180)
+        st.bar_chart(factors_df.set_index("Dimension"), height=180)
 
     # 4-Quadrant SWOT Matrix
     st.markdown("### 🧩 4-Quadrant SWOT Analysis Matrix")
@@ -513,7 +536,7 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
             f"""
             <div class="swot-card swot-s">
                 <h4 style="margin: 0 0 8px 0; font-weight: 800;">💪 STRENGTHS (Internal)</h4>
-                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('strengths', []))}</ul>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('Strengths', []))}</ul>
             </div>
             """,
             unsafe_allow_html=True,
@@ -523,7 +546,7 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
             f"""
             <div class="swot-card swot-o">
                 <h4 style="margin: 0 0 8px 0; font-weight: 800;">🚀 OPPORTUNITIES (External)</h4>
-                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('opportunities', []))}</ul>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('Opportunities', []))}</ul>
             </div>
             """,
             unsafe_allow_html=True,
@@ -533,7 +556,7 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
             f"""
             <div class="swot-card swot-w">
                 <h4 style="margin: 0 0 8px 0; font-weight: 800;">⚠️ WEAKNESSES (Internal)</h4>
-                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('weaknesses', []))}</ul>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('Weaknesses', []))}</ul>
             </div>
             """,
             unsafe_allow_html=True,
@@ -543,7 +566,7 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
             f"""
             <div class="swot-card swot-t">
                 <h4 style="margin: 0 0 8px 0; font-weight: 800;">🛑 THREATS (External)</h4>
-                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('threats', []))}</ul>
+                <ul>{''.join(f'<li>{item}</li>' for item in swot.get('Threats', []))}</ul>
             </div>
             """,
             unsafe_allow_html=True,
@@ -729,5 +752,4 @@ Summary: {workflow_state.get('report', {}).get('summary', 'Standard implementati
         data=report_content,
         file_name=f"Prediction_AI_Report_{selected_project['startup_name'].replace(' ', '_')}.txt",
         mime="text/plain",
-        use_container_width=True,
     )
