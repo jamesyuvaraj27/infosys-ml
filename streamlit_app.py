@@ -30,7 +30,7 @@ from risk_engine import (
 from swot_analysis import generate_swot
 from feasibility import calculate_feasibility
 from recommendation_engine import generate_recommendations
-from risk_mitigation import generate_mitigations
+from risk_mitigation import generate_mitigation
 from workflow import run_workflow, WORKFLOW_STEPS
 
 # Initialize Databases
@@ -331,7 +331,6 @@ if nav_selection == "📊 Dashboard (Milestone 1)":
                 """,
                 unsafe_allow_html=True,
             )
-            # Market growth chart
             trend_df = pd.DataFrame({
                 "Year": market_data["trend"]["years"],
                 "Market Size ($B)": market_data["trend"]["values"]
@@ -443,7 +442,6 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
         technical_risk = st.slider("4. Technical / Feasibility Risk", 1, 5, 2, help="Complexity of AI/ML or tech stack.")
         operational_risk = st.slider("5. Operational / Team Risk", 1, 5, 2, help="Execution capability, team size, compliance.")
         
-        # Calculate Risk and Feasibility
         user_risks = {
             "market_risk": market_risk,
             "financial_risk": financial_risk,
@@ -466,7 +464,6 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
         swot = generate_swot(selected_project, user_risks)
     
     with col_results:
-        # Score KPIs
         r_kpi1, r_kpi2, r_kpi3 = st.columns(3)
         with r_kpi1:
             st.markdown(
@@ -502,14 +499,13 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
                 unsafe_allow_html=True,
             )
         
-        # Risk Distribution Chart
         risk_chart_df = pd.DataFrame({
             "Factor": ["Market", "Financial", "Competition", "Technical", "Operational"],
             "Risk Score (1-5)": [market_risk, financial_risk, competition_risk, technical_risk, operational_risk]
         })
         st.bar_chart(risk_chart_df.set_index("Factor"), height=180)
 
-    # 4-Quadrant SWOT Analysis Matrix
+    # 4-Quadrant SWOT Matrix
     st.markdown("### 🧩 4-Quadrant SWOT Analysis Matrix")
     swot_c1, swot_c2 = st.columns(2)
     with swot_c1:
@@ -564,32 +560,37 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
     st.markdown(f"## 🎯 Milestone 3 — AI Recommendations & Strategic Reasoning")
     st.caption(f"Decision Support Layer for: **{selected_project['startup_name']}**")
     
-    # Calculate risks & generate recommendations
-    user_risks = {"market_risk": 3, "financial_risk": 3, "competition_risk": 3, "technical_risk": 2, "operational_risk": 2}
-    avg_risk, risk_status = calculate_risk(**user_risks)
-    feasibility_score, feasibility_label, verdict_description = calculate_feasibility(
-        avg_risk, float(selected_project["budget"] or 0), selected_project["industry"]
+    budget = float(selected_project.get("budget") or 0)
+    industry = (selected_project.get("industry") or "").lower()
+    financial_risk = min(100, max(0, 100 - (budget / 10000)))
+    competition_risk = 60 if "tech" in industry or "finance" in industry else 40
+    technical_risk = 55 if "tech" in industry else 35
+    operational_risk = 45
+    market_risk = 50
+    overall_risk = round(
+        (financial_risk * 0.3 + competition_risk * 0.25 + technical_risk * 0.2
+         + operational_risk * 0.15 + market_risk * 0.1)
     )
-    swot = generate_swot(selected_project, user_risks)
-    
-    # Check existing recommendations in DB or generate fresh
-    existing_recs = get_recommendations(selected_project["id"])
-    if not existing_recs:
-        generated_recs = generate_recommendations(
-            project=selected_project,
-            risk_scores=user_risks,
-            swot=swot,
-            feasibility_score=feasibility_score,
-            feasibility_label=feasibility_label,
-        )
-        save_recommendations(selected_project["id"], generated_recs)
-        existing_recs = generated_recs
-        
-    existing_mits = get_mitigations(selected_project["id"])
-    if not existing_mits:
-        generated_mits = generate_mitigations(user_risks)
-        save_mitigations(selected_project["id"], generated_mits)
-        existing_mits = generated_mits
+
+    risk_scores = {
+        "financial_risk": financial_risk,
+        "competition_risk": competition_risk,
+        "technical_risk": technical_risk,
+        "operational_risk": operational_risk,
+        "market_risk": market_risk,
+        "overall_risk": overall_risk,
+    }
+
+    # Run workflow
+    workflow_state = run_workflow(
+        project=selected_project,
+        risk_scores=risk_scores,
+        swot=None,
+        feasibility_score=max(0, 100 - overall_risk),
+    )
+
+    existing_recs = workflow_state["recommendations"]
+    existing_mits = workflow_state["mitigations"]
 
     # KPI Row
     m3_k1, m3_k2, m3_k3, m3_k4 = st.columns(4)
@@ -620,9 +621,9 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
         st.markdown(
             f"""
             <div class="kpi-card kpi-amber">
-                <div class="kpi-label">⚠️ Risk Level</div>
-                <div class="kpi-value">{risk_status}</div>
-                <div class="kpi-subtext">Score: {avg_risk:.1f} / 5.0</div>
+                <div class="kpi-label">⚠️ Risk Score</div>
+                <div class="kpi-value">{overall_risk} <span style="font-size: 14px; color: #64748b;">/ 100</span></div>
+                <div class="kpi-subtext">Automated Index</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -632,14 +633,14 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
             f"""
             <div class="kpi-card kpi-emerald">
                 <div class="kpi-label">🏆 Feasibility</div>
-                <div class="kpi-value" style="color: #059669;">{feasibility_score:.0f}%</div>
-                <div class="kpi-subtext">{feasibility_label}</div>
+                <div class="kpi-value" style="color: #059669;">{max(0, 100 - overall_risk):.0f}%</div>
+                <div class="kpi-subtext">Feasibility Projection</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    # 2-Column Layout: Left (Recommendations & Mitigations), Right (LangGraph Workflow)
+    # 2-Column Layout
     m3_left, m3_right = st.columns([1.3, 1.1])
     
     with m3_left:
@@ -653,13 +654,9 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
                     <div class="rec-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <span class="tag-badge {p_class}">{r.get('priority', 'Medium')} Priority</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #64748b;">Category: {r.get('category', 'General')}</span>
                         </div>
                         <h4 style="margin: 4px 0 6px 0; font-weight: 800; color: #0f172a;">{r.get('title')}</h4>
-                        <p style="font-size: 13px; color: #334155; margin-bottom: 8px;">{r.get('description')}</p>
-                        <div style="font-size: 11px; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569;">
-                            <strong>Expected Impact:</strong> {r.get('expected_impact', 'N/A')}
-                        </div>
+                        <p style="font-size: 13px; color: #334155; margin-bottom: 0;">{r.get('description')}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -670,14 +667,10 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
                     f"""
                     <div class="rec-card" style="border-left-color: #2563eb;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="tag-badge tag-high">Risk Factor: {m.get('risk_factor')}</span>
-                            <span style="font-size: 11px; color: #64748b;">Owner: <strong>{m.get('owner', 'Team')}</strong> | Cost: <strong>{m.get('cost_impact', 'Low')}</strong></span>
+                            <span class="tag-badge tag-high">{m.get('risk')}</span>
+                            <span style="font-size: 11px; color: #64748b;">Impact: <strong>{m.get('impact')}</strong></span>
                         </div>
-                        <h4 style="margin: 4px 0 6px 0; font-weight: 800; color: #0f172a;">{m.get('strategy_name')}</h4>
-                        <p style="font-size: 13px; color: #334155; margin-bottom: 8px;">{m.get('details')}</p>
-                        <div style="font-size: 11px; background: #f0fdf4; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0; color: #166534;">
-                            <strong>Timeline:</strong> {m.get('timeline', 'Immediate')}
-                        </div>
+                        <p style="font-size: 13px; color: #334155; margin-bottom: 0;">{m.get('mitigation')}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -695,36 +688,18 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
             unsafe_allow_html=True,
         )
         
-        if st.button("⚡ Run Live Reasoning Workflow", use_container_width=True):
-            with st.spinner("Executing 5-stage reasoning workflow..."):
-                final_workflow_state = run_workflow(
-                    project=selected_project,
-                    risk_scores=user_risks,
-                    swot=swot,
-                    feasibility={"score": feasibility_score, "label": feasibility_label},
-                    recommendations=existing_recs,
-                    mitigations=existing_mits,
-                )
-                st.session_state["workflow_state"] = final_workflow_state
-        
-        workflow_data = st.session_state.get("workflow_state")
-        
-        # Display Stages
-        stages = [
-            ("1. Data Ingestion", "📥 Ingests Milestone 1 & 2 inputs into state."),
-            ("2. Risk Analysis", "⚖️ Evaluates risk vectors and prioritizes critical flags."),
-            ("3. Strategic Reasoning", "💡 Formulates strategic recommendations and mitigations."),
-            ("4. Validation", "🛡️ Assesses budget runway and execution viability."),
-            ("5. Final Assessment Report", "📄 Produces executive verdict and summary score."),
-        ]
-        
-        for idx, (s_title, s_desc) in enumerate(stages, 1):
-            with st.expander(f"Stage {idx}: {s_title}", expanded=(idx <= 2 or workflow_data is not None)):
-                st.write(s_desc)
-                if workflow_data and "stage_outputs" in workflow_data and str(idx) in workflow_data["stage_outputs"]:
-                    st.json(workflow_data["stage_outputs"][str(idx)])
-                else:
-                    st.caption("Status: ✅ Ready to execute")
+        for step in WORKFLOW_STEPS:
+            with st.expander(f"{step['icon']} {step['name']}", expanded=True):
+                st.write(step['description'])
+                if step['name'] == "Strategic Reasoning" and workflow_state.get("reasoning"):
+                    for chain in workflow_state["reasoning"]:
+                        st.info(f"**Trigger:** {chain.get('trigger')} → **Strategy:** {chain.get('strategy')}")
+                elif step['name'] == "Validation":
+                    st.success(f"Validation Status: {'PASSED' if workflow_state.get('validation_passed') else 'PENDING'}")
+                elif step['name'] == "Report Generation" and workflow_state.get("report"):
+                    rep = workflow_state["report"]
+                    st.write(f"**Executive Verdict:** {rep.get('verdict')}")
+                    st.write(f"**Summary:** {rep.get('summary')}")
 
     # Downloadable Final Assessment Report
     st.divider()
@@ -734,21 +709,21 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
 Project Name: {selected_project['startup_name']}
 Industry: {selected_project['industry']}
 Business Model: {selected_project['business_model']}
-Budget: ₹{float(selected_project['budget'] or 0):,.0f}
+Budget: ₹{budget:,.0f}
 Target Market: {selected_project.get('target_market', 'N/A')}
 
 --- MILESTONE 2 ANALYSIS ---
-Overall Risk Score: {avg_risk:.1f} / 5.0 ({risk_status} Risk)
-Success Probability: {success_prob:.0f}%
-Feasibility Score: {feasibility_score:.0f}% ({feasibility_label})
+Overall Risk Index: {overall_risk} / 100
+Feasibility Score: {max(0, 100 - overall_risk)}%
 
 --- MILESTONE 3 RECOMMENDATIONS ---
 Total Recommended Actions: {len(existing_recs)}
 High/Critical Priority Items: {critical_count}
 
-Strategic Verdict: {verdict_description}
+Executive Verdict: {workflow_state.get('report', {}).get('verdict', 'Feasible')}
+Summary: {workflow_state.get('report', {}).get('summary', 'Standard implementation trajectory.')}
 """
-    st.text_area("Executive Summary:", report_content, height=200)
+    st.text_area("Executive Summary:", report_content, height=180)
     st.download_button(
         label="📥 Download Executive Assessment Report (.txt)",
         data=report_content,

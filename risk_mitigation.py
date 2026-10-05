@@ -139,3 +139,7 @@ def generate_mitigation(risk_scores: dict) -> list:
     mitigations.sort(key=lambda m: _order.get(m["impact"], 3))
 
     return mitigations
+
+
+# Alias for compatibility
+generate_mitigations = generate_mitigation
