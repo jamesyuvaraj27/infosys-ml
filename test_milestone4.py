@@ -1,4 +1,4 @@
-"""Venture Intelligence Platform — Automated Test Suite.
+"""Failure Prediction AI – Startup & Project Risk Analyzer — Automated Test Suite.
 
 Validates:
 1. Dashboard Analytics Service aggregation logic and metrics calculations.

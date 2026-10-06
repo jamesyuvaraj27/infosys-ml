@@ -2,7 +2,7 @@
 
 ## Overview
 
-Milestone 3 is the decision-making layer of Prediction AI.
+Milestone 3 is the decision-making layer of Failure Prediction AI – Startup & Project Risk Analyzer.
 
 Milestone 1 collected and stored project information.
 
@@ -752,7 +752,7 @@ Milestone 3 is complete when:
 
 # Final Goal
 
-Milestone 3 transforms Prediction AI from an analysis tool into a decision-support system.
+Milestone 3 transforms Failure Prediction AI – Startup & Project Risk Analyzer from an analysis tool into a decision-support system.
 
 Milestone 1 collected information.
 

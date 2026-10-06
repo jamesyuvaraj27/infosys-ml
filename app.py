@@ -1,4 +1,4 @@
-"""Prediction AI — Centralized Flask Web Application.
+"""Failure Prediction AI – Startup & Project Risk Analyzer — Centralized Flask Web Application.
 
 Integrates:
 - Milestone 1: Project Submission & TAM/SAM/SOM Market Sizing

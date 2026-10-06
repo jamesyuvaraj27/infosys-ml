@@ -1,4 +1,4 @@
-"""Streamlit unified application for Prediction AI (ML Market Intelligence).
+"""Streamlit unified application for Failure Prediction AI – Startup & Project Risk Analyzer.
 
 Includes:
 - Milestone 1: Project Submission, Database Explorer, TAM/SAM/SOM Market Sizing, Competitor Landscape.
@@ -39,7 +39,7 @@ init_milestone3_tables()
 
 # Configure Page
 st.set_page_config(
-    page_title="Prediction AI — ML Market Intelligence",
+    page_title="Failure Prediction AI – Startup & Project Risk Analyzer",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -180,8 +180,8 @@ st.markdown(
     <div class="brand-header">
         <div class="brand-title">
             <span class="brand-badge">AI</span>
-            <span>Prediction AI</span>
-            <span style="font-size: 12px; color: #64748b; font-weight: 500;">— ML Market Intelligence & Decision Support</span>
+            <span>Failure Prediction AI</span>
+            <span style="font-size: 12px; color: #64748b; font-weight: 500;">— Startup &amp; Project Risk Analyzer</span>
         </div>
         <div style="font-size: 12px; color: #64748b; font-weight: 600;">
             <span style="color: #2563eb;">M1 Data</span> • 
@@ -728,7 +728,7 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
     st.divider()
     st.markdown("### 📄 Final Assessment Report")
     
-    report_content = f"""# PREDICTION AI — FINAL STRATEGIC ASSESSMENT REPORT
+    report_content = f"""# FAILURE PREDICTION AI — STARTUP & PROJECT RISK ANALYZER — ASSESSMENT REPORT
 Project Name: {selected_project['startup_name']}
 Industry: {selected_project['industry']}
 Business Model: {selected_project['business_model']}
@@ -750,6 +750,6 @@ Summary: {workflow_state.get('report', {}).get('summary', 'Standard implementati
     st.download_button(
         label="📥 Download Executive Assessment Report (.txt)",
         data=report_content,
-        file_name=f"Prediction_AI_Report_{selected_project['startup_name'].replace(' ', '_')}.txt",
+        file_name=f"Failure_Prediction_AI_Report_{selected_project['startup_name'].replace(' ', '_')}.txt",
         mime="text/plain",
     )

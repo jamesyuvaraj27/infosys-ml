@@ -1,4 +1,4 @@
-# Prediction AI — Startup & Project Risk Analyzer
+# Failure Prediction AI – Startup & Project Risk Analyzer
 
 AI-powered Venture Market Intelligence & Risk Analysis Platform connecting project ingestion, market sizing, 5-factor risk scoring, automated SWOT analysis, strategic AI reasoning, executive assessment reporting, and PDF/JSON export.
 
@@ -6,7 +6,7 @@ AI-powered Venture Market Intelligence & Risk Analysis Platform connecting proje
 
 ## 🚀 System Architecture & Milestone Progression
 
-Prediction AI integrates 4 multi-stage milestones into a single unified platform:
+Failure Prediction AI integrates 4 multi-stage milestones into a single unified platform:
 
 1. **Milestone 1 — Data Ingestion & Market Sizing**:
    - Ingestion form for startups (industry, business model, budget, target market).
