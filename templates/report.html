@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% block title %}Assessment Report — {{ metadata.startupName }}{% endblock %}
+
+{% block content %}
+
+<!-- ───────────────────────────── Top Action Bar (Screen Only) ───────────────────────────── -->
+<div class="no-print mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+        <span>📑</span>
+        <span>Executive Assessment Report #{{ report.id if report else metadata.projectId }}</span>
+      </span>
+      <span class="text-xs text-slate-400 font-mono">Generated: {{ metadata.generatedAt }}</span>
+    </div>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+      {{ metadata.startupName }} — Assessment Report
+    </h1>
+    <p class="text-slate-600 mt-1 text-xs sm:text-sm">
+      <span>{{ metadata.industry }}</span> &nbsp;·&nbsp;
+      <span>{{ metadata.businessModel }}</span> &nbsp;·&nbsp;
+      Budget: <span class="text-emerald-700 font-mono font-semibold">₹{{ '{:,.0f}'.format(metadata.budget or 0) }}</span>
+    </p>
+  </div>
+
+  <!-- Export & Action Buttons -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <a href="/dashboard/{{ metadata.projectId }}" class="text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3.5 py-2.5 rounded-lg transition font-medium flex items-center gap-1.5 shadow-sm">
+      <span>←</span> Dashboard
+    </a>
+    
+    {% if report %}
+    <a href="/api/reports/download/{{ report.id }}/pdf" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition">
+      <span>📄</span>
+      <span>Download PDF</span>
+    </a>
+    
+    <a href="/api/reports/download/{{ report.id }}/json" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-sm transition">
+      <span>💾</span>
+      <span>Export JSON</span>
+    </a>
+    {% endif %}
+
+    <button onclick="window.print()" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-sm transition">
+      <span>🖨️</span>
+      <span>Print</span>
+    </button>
+
+    <button onclick="copyShareLink()" class="inline-flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-sm transition">
+      <span>🔗</span>
+      <span>Share</span>
+    </button>
+
+    <button onclick="regenerateReport({{ metadata.projectId }})" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-sm transition">
+      <span>🔄</span>
+      <span>Regenerate</span>
+    </button>
+
+    {% if report %}
+    <button onclick="deleteReport({{ report.id }})" class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition" title="Delete this report">
+      <span>🗑️</span>
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ───────────────────────────── Publication Report Document ───────────────────────────── -->
+<div class="report-container max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-10 space-y-8">
+  
+  <!-- Report Header / Cover Strip -->
+  <div class="border-b-2 border-slate-900 pb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
+          AI
+        </div>
+        <div>
+          <span class="text-[11px] font-bold tracking-wider uppercase text-blue-600">Prediction AI Intelligence Platform</span>
+          <h1 class="text-2xl font-black text-slate-900">Startup Risk Assessment &amp; Feasibility Report</h1>
+        </div>
+      </div>
+      <div class="text-left sm:text-right text-xs text-slate-500">
+        <div><b>Document ID:</b> #RPT-{{ report.id if report else metadata.projectId }}-{{ metadata.projectId }}</div>
+        <div><b>Assessment Date:</b> {{ metadata.generatedAt }}</div>
+        <div><b>Authority:</b> AI Risk Intelligence Engine</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Venture Identification Table -->
+  <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+    <div>
+      <span class="text-slate-500 font-medium block">Venture Name</span>
+      <span class="font-bold text-slate-900 text-sm">{{ metadata.startupName }}</span>
+    </div>
+    <div>
+      <span class="text-slate-500 font-medium block">Sector / Industry</span>
+      <span class="font-bold text-slate-900 text-sm">{{ metadata.industry }}</span>
+    </div>
+    <div>
+      <span class="text-slate-500 font-medium block">Business Model</span>
+      <span class="font-bold text-slate-900 text-sm">{{ metadata.businessModel }}</span>
+    </div>
+    <div>
+      <span class="text-slate-500 font-medium block">Allocated Capital</span>
+      <span class="font-mono font-bold text-emerald-700 text-sm">₹{{ '{:,.0f}'.format(metadata.budget or 0) }}</span>
+    </div>
+  </div>
+
+  <!-- KPI Executive Ribbon -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="p-4 rounded-xl border {% if executiveSummary.riskScore >= 70 %}bg-red-50/50 border-red-200{% elif executiveSummary.riskScore >= 40 %}bg-amber-50/50 border-amber-200{% else %}bg-emerald-50/50 border-emerald-200{% endif %}">
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Overall Risk Score</div>
+      <div class="text-3xl font-black font-mono mt-1 {% if executiveSummary.riskScore >= 70 %}text-red-600{% elif executiveSummary.riskScore >= 40 %}text-amber-600{% else %}text-emerald-600{% endif %}">
+        {{ executiveSummary.riskScore }}<span class="text-xs text-slate-400 font-normal">/100</span>
+      </div>
+      <div class="mt-1">
+        <span class="saas-badge {% if executiveSummary.riskScore >= 70 %}badge-critical{% elif executiveSummary.riskScore >= 40 %}badge-high{% else %}badge-emerald{% endif %}">
+          {{ executiveSummary.overallRiskLevel }}
+        </span>
+      </div>
+    </div>
+
+    <div class="p-4 rounded-xl border bg-blue-50/50 border-blue-200">
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Success Probability</div>
+      <div class="text-3xl font-black text-blue-700 font-mono mt-1">{{ executiveSummary.successProbability }}%</div>
+      <div class="w-full bg-blue-200 rounded-full h-1.5 mt-2">
+        <div class="bg-blue-600 h-1.5 rounded-full" style="width: {{ executiveSummary.successProbability }}%"></div>
+      </div>
+    </div>
+
+    <div class="p-4 rounded-xl border bg-emerald-50/50 border-emerald-200">
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Feasibility Rating</div>
+      <div class="text-3xl font-black text-emerald-700 font-mono mt-1">{{ executiveSummary.feasibilityScore }}%</div>
+      <div class="mt-1">
+        <span class="saas-badge badge-emerald">{{ executiveSummary.verdict }}</span>
+      </div>
+    </div>
+
+    <div class="p-4 rounded-xl border bg-purple-50/50 border-purple-200">
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Actionable Plays</div>
+      <div class="text-3xl font-black text-purple-700 font-mono mt-1">{{ strategicRecommendations.recommendations | length }}</div>
+      <div class="text-[11px] text-slate-500 mt-1 font-medium">Strategic Recommendations</div>
+    </div>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">📋</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">1. Executive Summary</h2>
+    </div>
+    <div class="text-xs text-slate-700 space-y-2 leading-relaxed">
+      <p class="font-medium text-slate-800">{{ executiveSummary.overview }} {{ executiveSummary.marketPosition }}</p>
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+        <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wide">Key Findings &amp; Intelligence Summary</h3>
+        <ul class="space-y-1.5 list-disc list-inside">
+          {% for finding in executiveSummary.summaryText %}
+          <li>{{ finding }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Risk Assessment -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">🛡️</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">2. Detailed Risk Assessment</h2>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+        <thead class="bg-slate-100 uppercase text-slate-700 font-bold text-[11px]">
+          <tr>
+            <th class="px-4 py-2.5">Risk Vector</th>
+            <th class="px-4 py-2.5">Score</th>
+            <th class="px-4 py-2.5">Impact Level</th>
+            <th class="px-4 py-2.5">Primary Mitigation Directive</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">Financial Risk</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ riskAssessment.breakdown.financialRisk }}%</td>
+            <td class="px-4 py-2.5">
+              <span class="saas-badge {% if riskAssessment.breakdown.financialRisk >= 65 %}badge-critical{% else %}badge-high{% endif %}">
+                {% if riskAssessment.breakdown.financialRisk >= 65 %}CRITICAL{% else %}HIGH{% endif %}
+              </span>
+            </td>
+            <td class="px-4 py-2.5 text-slate-600">Extend runway to 12+ months, establish lean burn controls, seek angel/grant funding.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">Competition Risk</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ riskAssessment.breakdown.competitionRisk }}%</td>
+            <td class="px-4 py-2.5">
+              <span class="saas-badge {% if riskAssessment.breakdown.competitionRisk >= 65 %}badge-critical{% else %}badge-high{% endif %}">
+                {% if riskAssessment.breakdown.competitionRisk >= 65 %}CRITICAL{% else %}MODERATE{% endif %}
+              </span>
+            </td>
+            <td class="px-4 py-2.5 text-slate-600">Focus on beachhead niche segment, highlight unique differentiation, build customer switching costs.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">Technical Risk</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ riskAssessment.breakdown.technicalRisk }}%</td>
+            <td class="px-4 py-2.5">
+              <span class="saas-badge badge-high">MODERATE</span>
+            </td>
+            <td class="px-4 py-2.5 text-slate-600">Deploy rapid MVP prototype sprints to validate core architecture prior to scale development.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">Operational Risk</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ riskAssessment.breakdown.operationalRisk }}%</td>
+            <td class="px-4 py-2.5">
+              <span class="saas-badge badge-blue">LOW-MEDIUM</span>
+            </td>
+            <td class="px-4 py-2.5 text-slate-600">Automate customer onboarding and billing pipelines; standardize internal team SLAs.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">Market Risk</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ riskAssessment.breakdown.marketRisk }}%</td>
+            <td class="px-4 py-2.5">
+              <span class="saas-badge badge-blue">LOW-MEDIUM</span>
+            </td>
+            <td class="px-4 py-2.5 text-slate-600">Conduct regular customer discovery interviews and monitor Net Promoter Score (NPS).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. SWOT Matrix -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">🧭</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">3. Automated SWOT Matrix</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+        <h3 class="font-bold text-emerald-800 text-xs uppercase mb-2 flex items-center gap-1.5">
+          <span>💪</span> Strengths (Internal)
+        </h3>
+        <ul class="text-xs text-emerald-950 space-y-1 list-disc list-inside">
+          {% for s in swotAnalysis.Strengths %}
+          <li>{{ s }}</li>
+          {% else %}
+          <li>Core domain competency</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+        <h3 class="font-bold text-rose-800 text-xs uppercase mb-2 flex items-center gap-1.5">
+          <span>⚠️</span> Weaknesses (Internal)
+        </h3>
+        <ul class="text-xs text-rose-950 space-y-1 list-disc list-inside">
+          {% for w in swotAnalysis.Weaknesses %}
+          <li>{{ w }}</li>
+          {% else %}
+          <li>Initial capital limitations</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
+        <h3 class="font-bold text-blue-800 text-xs uppercase mb-2 flex items-center gap-1.5">
+          <span>🚀</span> Opportunities (External)
+        </h3>
+        <ul class="text-xs text-blue-950 space-y-1 list-disc list-inside">
+          {% for o in swotAnalysis.Opportunities %}
+          <li>{{ o }}</li>
+          {% else %}
+          <li>Market digitization &amp; growth</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+        <h3 class="font-bold text-amber-800 text-xs uppercase mb-2 flex items-center gap-1.5">
+          <span>⚡</span> Threats (External)
+        </h3>
+        <ul class="text-xs text-amber-950 space-y-1 list-disc list-inside">
+          {% for t in swotAnalysis.Threats %}
+          <li>{{ t }}</li>
+          {% else %}
+          <li>Incumbent market dominance</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Competitor Intelligence & Market Sizing -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">🏢</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">4. Market Sizing &amp; Competitor Intelligence</h2>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
+        <div class="text-blue-700 font-black font-mono text-base">{{ competitorIntelligence.marketData.tam }}</div>
+        <div class="text-[11px] font-bold text-slate-500 uppercase mt-0.5">Total Addressable Market (TAM)</div>
+      </div>
+      <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
+        <div class="text-purple-700 font-black font-mono text-base">{{ competitorIntelligence.marketData.sam }}</div>
+        <div class="text-[11px] font-bold text-slate-500 uppercase mt-0.5">Serviceable Market (SAM)</div>
+      </div>
+      <div class="p-3 rounded-xl bg-pink-50 border border-pink-200">
+        <div class="text-pink-700 font-black font-mono text-base">{{ competitorIntelligence.marketData.som }}</div>
+        <div class="text-[11px] font-bold text-slate-500 uppercase mt-0.5">Obtainable Market (SOM)</div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto mt-3">
+      <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+        <thead class="bg-slate-100 uppercase text-slate-700 font-bold text-[11px]">
+          <tr>
+            <th class="px-4 py-2.5">Competitor</th>
+            <th class="px-4 py-2.5">Market Share</th>
+            <th class="px-4 py-2.5">Estimated Revenue</th>
+            <th class="px-4 py-2.5">Annual Growth</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          {% for c in competitorIntelligence.competitors %}
+          <tr>
+            <td class="px-4 py-2.5 font-bold text-slate-900">{{ c.name }}</td>
+            <td class="px-4 py-2.5 font-mono font-bold">{{ c.market_share }}%</td>
+            <td class="px-4 py-2.5 text-slate-600 font-mono">{{ c.revenue }}</td>
+            <td class="px-4 py-2.5 text-emerald-600 font-bold font-mono">{{ c.growth }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5. Strategic Recommendations -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">🎯</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">5. AI Strategic Recommendations</h2>
+    </div>
+
+    <div class="space-y-3">
+      {% for rec in strategicRecommendations.recommendations %}
+      <div class="p-4 rounded-xl border {% if rec.priority == 'Critical' %}bg-red-50/40 border-red-200 border-l-4 border-l-red-500{% elif rec.priority == 'High' %}bg-amber-50/40 border-amber-200 border-l-4 border-l-amber-500{% else %}bg-blue-50/40 border-blue-200 border-l-4 border-l-blue-500{% endif %}">
+        <div class="flex items-center justify-between mb-1.5">
+          <h3 class="font-bold text-slate-900 text-xs">{{ rec.title }}</h3>
+          <span class="saas-badge {% if rec.priority == 'Critical' %}badge-critical{% elif rec.priority == 'High' %}badge-high{% else %}badge-medium{% endif %}">
+            {{ rec.priority }}
+          </span>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">{{ rec.description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 6. Phased Action Plan -->
+  <section class="space-y-3">
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <span class="text-base">🗺️</span>
+      <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">6. 3-Tier Phased Action Plan</h2>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Immediate -->
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <h3 class="font-bold text-red-700 text-xs uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
+          <span>⚡</span> Phase 1: Immediate Actions (0 - 30 Days)
+        </h3>
+        <div class="space-y-2">
+          {% for item in actionPlan.immediate %}
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs">
+            <div class="flex items-center justify-between font-bold text-slate-900">
+              <span>{{ item.action }}</span>
+              <span class="text-[10px] text-slate-500 font-mono">Owner: {{ item.owner }}</span>
+            </div>
+            <p class="text-slate-600 text-xs mt-1">{{ item.description }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Short-Term -->
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <h3 class="font-bold text-blue-700 text-xs uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
+          <span>📈</span> Phase 2: Short-Term Execution (1 - 3 Months)
+        </h3>
+        <div class="space-y-2">
+          {% for item in actionPlan.shortTerm %}
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs">
+            <div class="flex items-center justify-between font-bold text-slate-900">
+              <span>{{ item.action }}</span>
+              <span class="text-[10px] text-slate-500 font-mono">Owner: {{ item.owner }}</span>
+            </div>
+            <p class="text-slate-600 text-xs mt-1">{{ item.description }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Long-Term -->
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <h3 class="font-bold text-emerald-700 text-xs uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
+          <span>🚀</span> Phase 3: Long-Term Scaling (3 - 12 Months)
+        </h3>
+        <div class="space-y-2">
+          {% for item in actionPlan.longTerm %}
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs">
+            <div class="flex items-center justify-between font-bold text-slate-900">
+              <span>{{ item.action }}</span>
+              <span class="text-[10px] text-slate-500 font-mono">Owner: {{ item.owner }}</span>
+            </div>
+            <p class="text-slate-600 text-xs mt-1">{{ item.description }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Signoff / Verification Block -->
+  <div class="pt-6 border-t-2 border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+    <div>
+      <span class="font-bold text-slate-800">Prediction AI Intelligence Platform</span>
+      <span class="block text-[11px] text-slate-400">Validated through multi-stage venture intelligence pipeline.</span>
+    </div>
+    <div class="text-left sm:text-right">
+      <span class="font-bold text-emerald-700">✓ System Certified</span>
+      <span class="block text-[11px] text-slate-400">{{ metadata.generatedAt }}</span>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+  @media print {
+    .no-print, header, footer, #toast-container {
+      display: none !important;
+    }
+    body, main {
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .report-container {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
+  }
+</style>
+<script>
+  function regenerateReport(projectId) {
+    if (!confirm('Regenerate fresh assessment report for this project?')) return;
+    fetch('/api/reports/generate/' + projectId, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.reportId) {
+          showToast('Report regenerated successfully!');
+          setTimeout(() => {
+            window.location.href = '/report/view/' + data.reportId;
+          }, 600);
+        } else {
+          showToast('Error generating report', 'error');
+        }
+      })
+      .catch(err => {
+        showToast('Failed to regenerate report: ' + err, 'error');
+      });
+  }
+</script>
+{% endblock %}

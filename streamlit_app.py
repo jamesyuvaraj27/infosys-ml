@@ -1,9 +1,9 @@
-"""Streamlit unified application for Prediction AI (ML Market Intelligence).
+"""Streamlit unified application for Prediction AI (Venture Market Intelligence).
 
 Includes:
-- Milestone 1: Project Submission, Database Explorer, TAM/SAM/SOM Market Sizing, Competitor Landscape.
-- Milestone 2: 5-Factor Risk Scoring Engine, SWOT Analysis Matrix, Feasibility Assessment.
-- Milestone 3: AI Recommendations Engine, Risk Mitigation Action Cards, LangGraph Reasoning Workflow, Final Assessment Report.
+- Market Ingestion & Sizing: Project Submission, Database Explorer, TAM/SAM/SOM Market Sizing, Competitor Landscape.
+- Risk & SWOT Assessment: 5-Factor Risk Scoring Engine, SWOT Analysis Matrix, Feasibility Assessment.
+- Strategic Recommendations: AI Recommendations Engine, Risk Mitigation Action Cards, Reasoning Workflow, Final Assessment Report.
 """
 import streamlit as st
 import json
@@ -15,7 +15,9 @@ from database import (
     get_project_count,
     init_db,
     insert_project,
+    delete_project,
     init_milestone3_tables,
+    init_milestone4_tables,
     save_recommendations,
     save_mitigations,
     get_recommendations,
@@ -36,10 +38,11 @@ from workflow import run_workflow, WORKFLOW_STEPS
 # Initialize Databases
 init_db()
 init_milestone3_tables()
+init_milestone4_tables()
 
 # Configure Page
 st.set_page_config(
-    page_title="Prediction AI — ML Market Intelligence",
+    page_title="Prediction AI — Venture Market Intelligence",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -201,12 +204,12 @@ project_count = get_project_count()
 with st.sidebar:
     st.markdown("### 🧭 Navigation")
     nav_selection = st.radio(
-        "Select Milestone View:",
+        "Select Module:",
         [
-            "📊 Dashboard (Milestone 1)",
-            "➕ Submit Project (Milestone 1)",
-            "🛡️ Risk Assessment & SWOT (Milestone 2)",
-            "🎯 Recommendations & Reasoning (Milestone 3)",
+            "📊 Dashboard & Market Intelligence",
+            "➕ Submit Project",
+            "🛡️ Risk Assessment & SWOT",
+            "🎯 Recommendations & Reasoning",
         ],
         index=0,
     )
@@ -214,20 +217,26 @@ with st.sidebar:
     st.divider()
     
     if all_projects:
-        st.markdown("### 📁 Select Active Project")
+        st.markdown("### 📁 Active Project")
         project_dict = {f"#{p['id']} - {p['startup_name']} ({p['industry']})": p["id"] for p in all_projects}
         selected_project_label = st.selectbox("Current Project:", list(project_dict.keys()), key="global_project_select")
         active_project_id = project_dict[selected_project_label]
         selected_project = get_project_by_id(active_project_id)
+        
+        st.write("")
+        if st.button("🗑️ Delete This Project", type="secondary", use_container_width=True):
+            delete_project(active_project_id)
+            st.success(f"Project #{active_project_id} deleted permanently from database.")
+            st.rerun()
     else:
         selected_project = None
         st.info("No projects in database yet. Use 'Submit Project' to create one.")
 
 # ==============================================================================
-# TAB 1: DASHBOARD (MILESTONE 1)
+# TAB 1: DASHBOARD & MARKET INTELLIGENCE
 # ==============================================================================
-if nav_selection == "📊 Dashboard (Milestone 1)":
-    st.markdown("## 📊 Milestone 1 — Project Dashboard & Market Intelligence")
+if nav_selection == "📊 Dashboard & Market Intelligence":
+    st.markdown("## 📊 Venture Dashboard & Market Intelligence")
     st.caption("Live project ingestion, PostgreSQL/SQLite storage, TAM/SAM/SOM market sizing, and competitor analysis.")
     
     # KPI Strip
@@ -372,10 +381,10 @@ if nav_selection == "📊 Dashboard (Milestone 1)":
         st.dataframe(table_df, hide_index=True)
 
 # ==============================================================================
-# TAB 2: SUBMIT PROJECT (MILESTONE 1 FORM)
+# TAB 2: SUBMIT PROJECT
 # ==============================================================================
-elif nav_selection == "➕ Submit Project (Milestone 1)":
-    st.markdown("## ➕ Submit New Project (Milestone 1)")
+elif nav_selection == "➕ Submit Project":
+    st.markdown("## ➕ Submit New Project")
     st.caption("Enter your startup details below to save into the database and initialize risk analysis.")
     
     with st.form("new_project_form"):
@@ -409,17 +418,17 @@ elif nav_selection == "➕ Submit Project (Milestone 1)":
                 }
                 new_id = insert_project(new_project_data)
                 st.success(f"✅ Project #{new_id} '{startup_name}' successfully submitted and saved to Database!")
-                st.info("Switch to the '📊 Dashboard' or '🛡️ Risk Assessment' tab from the sidebar to inspect analysis.")
+                st.info("Switch to the '📊 Dashboard & Market Intelligence' or '🛡️ Risk Assessment & SWOT' tab from the sidebar to inspect analysis.")
 
 # ==============================================================================
-# TAB 3: RISK ASSESSMENT & SWOT (MILESTONE 2)
+# TAB 3: RISK ASSESSMENT & SWOT
 # ==============================================================================
-elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
+elif nav_selection == "🛡️ Risk Assessment & SWOT":
     if not selected_project:
         st.warning("Please submit a project first.")
         st.stop()
         
-    st.markdown(f"## 🛡️ Milestone 2 — Risk Assessment & SWOT Analysis")
+    st.markdown(f"## 🛡️ Risk Assessment & SWOT Analysis")
     st.caption(f"Analyzing: **{selected_project['startup_name']}** ({selected_project['industry']}) • Budget: ₹{float(selected_project['budget'] or 0):,.0f}")
     
     col_inputs, col_results = st.columns([1.1, 1.4])
@@ -573,14 +582,14 @@ elif nav_selection == "🛡️ Risk Assessment & SWOT (Milestone 2)":
         )
 
 # ==============================================================================
-# TAB 4: RECOMMENDATIONS & REASONING (MILESTONE 3)
+# TAB 4: RECOMMENDATIONS & REASONING
 # ==============================================================================
-elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
+elif nav_selection == "🎯 Recommendations & Reasoning":
     if not selected_project:
         st.warning("Please submit a project first.")
         st.stop()
         
-    st.markdown(f"## 🎯 Milestone 3 — AI Recommendations & Strategic Reasoning")
+    st.markdown(f"## 🎯 AI Recommendations & Strategic Reasoning")
     st.caption(f"Decision Support Layer for: **{selected_project['startup_name']}**")
     
     budget = float(selected_project.get("budget") or 0)
@@ -704,7 +713,7 @@ elif nav_selection == "🎯 Recommendations & Reasoning (Milestone 3)":
             """
             <div class="saas-box">
                 <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: #1e293b; margin-bottom: 8px;">
-                    🧠 5-Stage LangGraph Reasoning Pipeline
+                    🧠 5-Stage Reasoning &amp; Advisory Pipeline
                 </div>
             </div>
             """,
@@ -735,11 +744,11 @@ Business Model: {selected_project['business_model']}
 Budget: ₹{budget:,.0f}
 Target Market: {selected_project.get('target_market', 'N/A')}
 
---- MILESTONE 2 ANALYSIS ---
+--- RISK & FEASIBILITY ANALYSIS ---
 Overall Risk Index: {overall_risk} / 100
 Feasibility Score: {max(0, 100 - overall_risk)}%
 
---- MILESTONE 3 RECOMMENDATIONS ---
+--- STRATEGIC RECOMMENDATIONS ---
 Total Recommended Actions: {len(existing_recs)}
 High/Critical Priority Items: {critical_count}
 

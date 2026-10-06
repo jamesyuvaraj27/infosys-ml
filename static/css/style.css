@@ -186,3 +186,27 @@ body {
 .animate-reveal {
   animation: slideUpFade 0.3s ease forwards;
 }
+
+/* Report Styles & Print Optimization */
+.report-container {
+  background-color: #FFFFFF;
+}
+
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #0F172A !important;
+  }
+  .no-print, header, footer, #toast-container {
+    display: none !important;
+  }
+  .saas-card, .report-container {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  table {
+    page-break-inside: avoid;
+  }
+}
+

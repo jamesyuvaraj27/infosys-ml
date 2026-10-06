@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Assessment Reports History — Prediction AI{% endblock %}
+
+{% block content %}
+
+<!-- ───────────────────────────── Page Header ───────────────────────────── -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+        <span>📑</span>
+        <span>Assessment Reports Repository</span>
+      </span>
+      <span class="text-xs text-slate-400 font-mono">{{ reports | length }} Reports Stored</span>
+    </div>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+      Assessment Report History
+    </h1>
+    <p class="text-slate-600 mt-1 text-xs sm:text-sm">
+      Centralized repository of generated startup risk assessments, exportable to PDF and JSON.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-2.5 flex-wrap">
+    {% if projects %}
+    <select id="quick-gen-select" class="saas-select py-2 text-xs w-auto">
+      <option value="">— Generate Report for Project —</option>
+      {% for p in projects %}
+      <option value="{{ p.id }}">#{{ p.id }} - {{ p.startup_name }} ({{ p.industry }})</option>
+      {% endfor %}
+    </select>
+    <button onclick="generateFromSelector()" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition">
+      <span>+ Generate Report</span>
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ───────────────────────────── Reports Table View ───────────────────────────── -->
+<div class="saas-card p-6">
+  <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+    <div class="flex items-center gap-2">
+      <span class="text-base text-slate-700">📚</span>
+      <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">All Generated Reports</h2>
+    </div>
+    <span class="text-xs text-slate-400">Sorted by newest</span>
+  </div>
+
+  {% if reports %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs text-slate-700">
+      <thead class="uppercase bg-slate-100 text-slate-600 border-b border-slate-200 font-bold text-[11px]">
+        <tr>
+          <th class="px-4 py-3">Report ID</th>
+          <th class="px-4 py-3">Startup Name</th>
+          <th class="px-4 py-3">Industry</th>
+          <th class="px-4 py-3">Generated At</th>
+          <th class="px-4 py-3">Risk Assessment</th>
+          <th class="px-4 py-3">Feasibility</th>
+          <th class="px-4 py-3 text-right">Actions &amp; Export</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for r in reports %}
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 font-mono font-bold text-blue-600">
+            #RPT-{{ r.id }}
+          </td>
+          <td class="px-4 py-3 font-bold text-slate-900">
+            <a href="/report/view/{{ r.id }}" class="hover:text-blue-600 hover:underline">
+              {{ r.startup_name or (r.content.metadata.startupName if r.content and r.content.metadata else 'Startup') }}
+            </a>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium">
+              {{ r.industry or (r.content.metadata.industry if r.content and r.content.metadata else 'Tech') }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-slate-500 font-mono text-[11px]">
+            {{ r.generated_at }}
+          </td>
+          <td class="px-4 py-3">
+            {% set r_score = r.content.executiveSummary.riskScore if r.content and r.content.executiveSummary else 50 %}
+            <span class="saas-badge {% if r_score >= 70 %}badge-critical{% elif r_score >= 40 %}badge-high{% else %}badge-emerald{% endif %}">
+              {{ r_score }}/100 Risk
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            {% set r_verdict = r.content.executiveSummary.verdict if r.content and r.content.executiveSummary else 'Feasible' %}
+            <span class="saas-badge badge-blue">
+              {{ r_verdict }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-right space-x-1.5">
+            <a href="/report/view/{{ r.id }}" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded transition font-bold inline-flex items-center gap-1">
+              <span>View</span>
+            </a>
+            <a href="/api/reports/download/{{ r.id }}/pdf" class="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded transition font-bold inline-flex items-center gap-1">
+              <span>PDF</span>
+            </a>
+            <a href="/api/reports/download/{{ r.id }}/json" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-2 py-1 rounded transition font-medium inline-flex items-center gap-1">
+              <span>JSON</span>
+            </a>
+            <button onclick="deleteReport({{ r.id }})" class="text-[11px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2 py-1 rounded transition font-bold inline-flex items-center gap-1" title="Delete this report">
+              <span>🗑️</span>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16">
+    <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-3xl text-emerald-600 mx-auto mb-3 shadow-sm">
+      📑
+    </div>
+    <h3 class="font-bold text-slate-900 text-sm mb-1">No Assessment Reports Generated Yet</h3>
+    <p class="text-slate-500 text-xs mb-6 max-w-sm mx-auto">
+      Generate your first comprehensive AI risk evaluation report for any submitted project.
+    </p>
+    {% if projects %}
+    <button onclick="generateFirstReport({{ projects[0].id }})" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm transition">
+      <span>Generate Report for #{{ projects[0].id }} {{ projects[0].startup_name }}</span>
+      <span>→</span>
+    </button>
+    {% else %}
+    <a href="/submit" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm transition">
+      <span>Submit a Project First</span>
+      <span>→</span>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function generateFromSelector() {
+    const sel = document.getElementById('quick-gen-select');
+    if (!sel || !sel.value) {
+      showToast('Please select a project from the dropdown', 'error');
+      return;
+    }
+    generateFirstReport(sel.value);
+  }
+
+  function generateFirstReport(projectId) {
+    showToast('Generating comprehensive assessment report...');
+    fetch('/api/reports/generate/' + projectId, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.reportId) {
+          showToast('Report generated successfully!');
+          setTimeout(() => {
+            window.location.href = '/report/view/' + data.reportId;
+          }, 600);
+        } else {
+          showToast('Error generating report', 'error');
+        }
+      })
+      .catch(err => {
+        showToast('Failed to generate report: ' + err, 'error');
+      });
+  }
+</script>
+{% endblock %}
