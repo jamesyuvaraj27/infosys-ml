@@ -172,3 +172,7 @@ python test_milestone4.py
 1. Install Vercel CLI: `npm i -g vercel`
 2. Run `vercel --prod`
 3. Set environment variable `DATABASE_URL` in Vercel project settings.
+
+
+##  Contributors
+* [S Dikshita](https://github.com/Dikshita191) - Added project environment configurations.
